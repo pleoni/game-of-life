@@ -12,3 +12,23 @@ OMP:    gcc   life.c --define OMP -fopenmp -o life_omp
 MPI:    mpicc life.c --define MPI -o life_mpi
 
 Hybrid: mpicc life.c --define MPI --define OMP -fopenmp -o life_hybrid
+
+
+Version History:
+================
+
+  13.10.16   Fix vectors alignment (seg. fault on MIC)
+
+  13.10.08   Add vectorized computation
+
+  12.09.14   Adapted for serial version
+
+  12.06.13   added ifdef MPI
+
+  11.07.15   support of OMP_NUM_THREADS
+
+  11.05.25   openMP splitted by rows, MPI by columns; parallized (openMP) version of grid_init
+
+  11.03.20   split main and grid routines (life_common.h)
+
+  10.10.04   Add options -f -v
