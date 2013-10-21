@@ -1,0 +1,14 @@
+An implementation of "Game of Life" ---> http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+
+Purpose of this project is to make a useful performance's measurement tool based on the "Game of Life" (http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life), suitable on HPC systems.
+
+Compilation
+===========
+
+Serial: gcc   life.c -o life 
+
+OMP:    gcc   life.c --define OMP -fopenmp -o life_omp 
+
+MPI:    mpicc life.c --define MPI -o life_mpi
+
+Hybrid: mpicc life.c --define MPI --define OMP -fopenmp -o life_hybrid
