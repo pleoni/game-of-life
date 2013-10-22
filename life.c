@@ -246,14 +246,14 @@ int main(int argc, char ** argv) {
 
  next_grid = (short **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init next_grid
 
-int ok;	
+//int ok;	
 
- A= (short *) malloc ( sizeof(ptr) * ncomp ) ; 
+//A= (short *) malloc ( sizeof(ptr) * ncomp ) ; 
 
- B= (short *) malloc ( sizeof(ptr) * ncomp ) ; 
+//B= (short *) malloc ( sizeof(ptr) * ncomp ) ; 
 
-  ok = posix_memalign((void**)&A, 64, ncomp*sizeof(short));
-  ok = posix_memalign((void**)&B, 64, ncomp*sizeof(short));
+posix_memalign((void**)&A, 64, ncomp*sizeof(short));
+posix_memalign((void**)&B, 64, ncomp*sizeof(short));
 
 
 int i; 
