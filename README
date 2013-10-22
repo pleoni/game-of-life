@@ -3,8 +3,8 @@ LIFE
 
 Purpose of this project is to make a useful performance's measurement tool based on the "Game of Life" (http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life), suitable on HPC systems.
 
-Compilation
-===========
+Compilation - GNU
+==================
 
 Serial: gcc   life.c -o life 
 
@@ -14,6 +14,16 @@ MPI:    mpicc life.c --define MPI -o life_mpi
 
 Hybrid: mpicc life.c --define MPI --define OMP -fopenmp -o life_hybrid
 
+Compilation - INTEL
+===================
+
+Serial: icc   life.c -o life 
+
+OMP:    icc   life.c -D OMP -fopenmp -o life_omp 
+
+MPI:    mpicc life.c -D MPI -o life_mpi
+
+Hybrid: mpicc life.c -D MPI -D OMP -fopenmp -o life_hybrid
 
 Version History:
 ================
