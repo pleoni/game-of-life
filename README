@@ -25,6 +25,8 @@ MPI:    mpicc life.c -D MPI -o life_mpi
 
 Hybrid: mpicc life.c -D MPI -D OMP -fopenmp -o life_hybrid
 
+PLEASE NOTE: to compile on MIC use "-mmic" option.
+
 Version History:
 ================
 
