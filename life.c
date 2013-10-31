@@ -462,7 +462,7 @@ for (i=0; i< ncomp; i++) B[i]=rand_double()*100;
 
 	
 
-    if (DEBUG>0) fprintf(stderr,"%s-%d Finalize  - %f sec  \n" , hostname,mpi_rank, tb-ta);
+    if (DEBUG>0) fprintf(stderr,"%s-%d ~ Comp load: %d - Finalize  - %f sec  \n" , hostname,mpi_rank, tb-ta, ncomp);
 
 
 
