@@ -160,7 +160,7 @@ void comp(int n, short *A, short *B);
 
  long datasize;
 
-  int ncomp=10000;            //!< Computation load
+  int ncomp=1000;            //!< Computation load
 
 
 
