@@ -312,9 +312,9 @@ for (i=0; i< ncomp; i++) B[i]=rand_double()*100;
 
  
 
-    if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", 
+    if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d ncomp:%d\n", 
 
-                                     hostname, mpi_rank, mpi_size,num_threads,  ncols,nrows,nsteps,datafile, DEBUG);
+                                     hostname, mpi_rank, mpi_size,num_threads,  ncols,nrows,nsteps,datafile, DEBUG, ncomp);
 
     if (DEBUG==1) fprintf(stderr, "\n%s-%d ALLOCATE MEMORY  (%ld grid + %ld new_grid = %ld bytes ) \n",
 
@@ -462,7 +462,7 @@ for (i=0; i< ncomp; i++) B[i]=rand_double()*100;
 
 	
 
-    if (DEBUG>0) fprintf(stderr,"%s-%d ~ Comp load: %d - Finalize  - %f sec  \n" , hostname,mpi_rank, tb-ta, ncomp);
+    if (DEBUG>0) fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tb-ta);
 
 
 
@@ -729,6 +729,8 @@ void do_step(int rmin, int rmax, int cmin, int cmax, short ** grid, short ** nex
 
 
   int i,j,k,l;
+  
+  #pragma omp for
 
   for (i=rmin;i<=rmax;i++) {
 
