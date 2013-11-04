@@ -186,7 +186,7 @@ void comp(int n, short *A, short *B);
 
 
 
- short *A, *B; // array for computation
+ short **A, **B; // array for computation
 
 
 
@@ -234,38 +234,6 @@ int main(int argc, char ** argv) {
 
  options(argc, argv);         /* optarg management */ 
 
- gethostname(hostname, 100);  /* get hostname */
-
- datasize=nrows*ncols*sizeof(short) ;     /* tot number of bytes */ 
-
-	
-
- short *ptr;
-
- grid      = (short **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init grid
-
- next_grid = (short **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init next_grid
-
-//int ok;	
-
-//A= (short *) malloc ( sizeof(ptr) * ncomp ) ; 
-
-//B= (short *) malloc ( sizeof(ptr) * ncomp ) ; 
-
-posix_memalign((void**)&A, 64, ncomp*sizeof(short));
-posix_memalign((void**)&B, 64, ncomp*sizeof(short));
-
-
-int i; 
-
-for (i=0; i< ncomp; i++) A[i]=rand_double()*100;
-
-for (i=0; i< ncomp; i++) B[i]=rand_double()*100;
-
-//for (i=0; i< ncomp; i++) printf("%d ", A[i]);
-
-
-
 #ifdef OMP
 
 //char *nt=getenv("OMP_NUM_THREADS");
@@ -274,9 +242,50 @@ for (i=0; i< ncomp; i++) B[i]=rand_double()*100;
 
 //  if ( nt != NULL )  num_threads=strtol(nt,NULL,0);
 
-  omp_set_num_threads(num_threads);  // if is set (>0) keep this value else use  OMP_NUM_THREADS  
+  omp_set_num_threads(num_threads);  // if is set (>0) keep this value else use$
 
 #endif /* OMP */
+
+
+ gethostname(hostname, 100);  /* get hostname */
+
+ datasize=nrows*ncols*sizeof(short) ;     /* tot number of bytes */ 
+	
+
+ short *ptr;
+
+ grid      = (short **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init grid
+
+ next_grid = (short **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init next_grid
+
+ A      = (short **)  malloc ( sizeof(ptr) * (num_threads)  );  // init A for comp
+
+ B	= (short **)  malloc ( sizeof(ptr) * (num_threads)  );  // init B for comp
+
+int i,j;
+
+//int ok;	
+
+//A= (short *) malloc ( sizeof(ptr) * ncomp ) ; 
+
+//B= (short *) malloc ( sizeof(ptr) * ncomp ) ; 
+
+for (i=0; i < num_threads; i++) {
+
+	posix_memalign((void**)&(A[i]), 64, ncomp*sizeof(short));
+	posix_memalign((void**)&(B[i]), 64, ncomp*sizeof(short));
+
+	for (j=0; j< ncomp; j++) A[i][j]=rand_double()*100;
+	for (j=0; j< ncomp; j++) B[i][j]=rand_double()*100;
+
+}
+ 
+
+//for (i=0; i< ncomp; i++) A[i]=rand_double()*100;
+
+//for (i=0; i< ncomp; i++) B[i]=rand_double()*100;
+
+//for (i=0; i< ncomp; i++) printf("%d ", A[i]);
 
 
 
@@ -730,13 +739,13 @@ void do_step(int rmin, int rmax, int cmin, int cmax, short ** grid, short ** nex
 
   int i,j,k,l;
   
-  #pragma omp for
+  //#pragma omp for
 
   for (i=rmin;i<=rmax;i++) {
 
                 for (j=cmin;j<=cmax;j++) {
 
-                        comp(ncomp,A,B);
+                        comp(ncomp,A[omp_rank],B[omp_rank]);
 
                         int neighbors=0;
 
