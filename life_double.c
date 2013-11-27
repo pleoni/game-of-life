@@ -270,7 +270,7 @@ for (i=0; i < num_threads; i++) {
 
   int k;		
 
-	write_init_matrix(rmin,rmax,cmin,cmax, grid, base_life);
+	//write_init_matrix(rmin,rmax,cmin,cmax, grid, base_life);
 
 
  for(k=1; k<nsteps; k++)
