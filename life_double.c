@@ -81,6 +81,7 @@ void random_initByTime(int rank) ;
 void clearscreen();
 void copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid);
 void comp(int n, short *A, short *B);
+void write_init_matrix(int rmin, int rmax, int cmin, int cmax, double ** grid, double base_life);
 
 
  int nsteps=1000;       //!< Number of Steps 
@@ -269,6 +270,7 @@ for (i=0; i < num_threads; i++) {
 
   int k;		
 
+	write_init_matrix(rmin,rmax,cmin,cmax, grid, base_life);
 
 
  for(k=1; k<nsteps; k++)
@@ -580,7 +582,26 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 
 }
 
+///////////////////////////write_init_matrix/////////////////////
+void write_init_matrix(int rmin, int rmax, int cmin, int cmax, double ** grid, double base_life)
+{
+int i,j;
+FILE *f = fopen("initial_matrix.txt", "w");
+if (f == NULL)
+{
+    printf("Error opening file!\n");
+    exit(1);
+}
 
+  fprintf (f,"Initial matrix with prob=%f\n", base_life);
+  for(i=cmin;i<=cmax;i++) fprintf(f,"%c", '-'); fprintf (f,"%c", '\n');
+     for (i=rmin; i<rmax+1;i++) 
+         { for (j=cmin;j<=cmax;j++) 
+	    if (grid[i][j]==0) fprintf(f,"%c", ' '); else fprintf (f,"%c", 'x'); 			fprintf (f,"%c", '\n');
+	}
+
+fclose(f);
+}
 
 /////////////////////////// do_display ////////////////////////////////////
 
@@ -592,11 +613,14 @@ void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid)
 
   int i,j; 
   int delay=800000;       /* usec sleep in do_display */
+
   clearscreen();
   for(i=cmin;i<=cmax;i++) printf("-"); printf ("\n");
     for (i=rmin;i<=rmax;i++) 
          { for (j=cmin;j<=cmax;j++)  
-	    if (grid[i][j]==0) printf(" "); else printf ("x"); printf ("\n"); }
+	    if (grid[i][j]==0) printf(" "); else printf ("x"); printf ("\n"); 
+
+	}
 
    //for(i=cmin;i<=cmax;i++) printf("-"); printf ("\n");
    usleep(delay);
