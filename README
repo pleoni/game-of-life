@@ -27,6 +27,11 @@ Hybrid: mpicc life.c -D MPI -D OMP -fopenmp -o life_hybrid
 
 PLEASE NOTE: to compile on MIC use "-mmic" option.
 
+Compilation - PGI
+=================
+OMP: pgcc -mp=numa life_double_for.c -DOMP -fast -mp -Minfo -o life_double_for_omp_pgcc
+
+
 Version History:
 ================
 
