@@ -432,9 +432,9 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
 int i,j;
 
 #pragma omp parallel for shared(rmin, rmax, cmin, cmax, grid, next_grid)
- for (i=rmin;i<=rmax;i++)
+ for (i=rmin;i<=rmax;i++) //PGI: edit this line in this way --->  for (int i=rmin; i<=rmax; i++) {
  {
-     for (j=cmin;j<=cmax;j++)
+     for (j=cmin;j<=cmax;j++) //PGI: edit this line in this way --->  for (int j=cmin; j<=cmax; j++) {
 	{
          grid[i][j]=next_grid[i][j];  
 	}
@@ -447,13 +447,12 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 
  { 
 
-  //  printf ("executing comp() \n"); 
   int k,l,j,i;
   
   #pragma omp parallel for shared(rmin, rmax, cmin, cmax, grid, next_grid)
 
-  for (i=rmin; i<=rmax; i++) {
-       for (j=cmin; j<=cmax; j++) {
+  for (i=rmin; i<=rmax; i++) { //PGI: edit this line in this way --->  for (int i=rmin; i<=rmax; i++) {
+       for (j=cmin; j<=cmax; j++) { //PGI: edit this line in this way --->  for (int j=cmin; j<=cmax; j++) {
                comp(ncomp,A[omp_rank],B[omp_rank]);
 	       double neighbors=0.0;
 	       neighbors=grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
