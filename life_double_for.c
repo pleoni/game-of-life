@@ -229,8 +229,9 @@ for (i=0; i < num_threads; i++) {
     int rmax=nrows;
     int cmax=ncols;
 
-    int k;		
-
+    int k;	
+	
+	#pragma omp parallel for shared(rmin, rmax, cmin, cmax, grid, next_grid)	
 	for(k=1; k<nsteps; k++)
 
 		{
@@ -247,7 +248,7 @@ for (i=0; i < num_threads; i++) {
 
 	 	//if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STEP:%d\n", hostname,mpi_rank,omp_rank,omp_size,k); 
 
-  		#pragma omp single
+  		//#pragma omp single
 
 			{
 			copy_border(1, nrows, 1, ncols,  grid);
@@ -431,7 +432,6 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
 
 int i,j;
 
-#pragma omp parallel for shared(rmin, rmax, cmin, cmax, grid, next_grid)
  for (i=rmin;i<=rmax;i++) //PGI: edit this line in this way --->  for (int i=rmin; i<=rmax; i++) {
  {
      for (j=cmin;j<=cmax;j++) //PGI: edit this line in this way --->  for (int j=cmin; j<=cmax; j++) {
@@ -448,8 +448,6 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
  { 
 
   int k,l,j,i;
-  
-  #pragma omp parallel for shared(rmin, rmax, cmin, cmax, grid, next_grid)
 
   for (i=rmin; i<=rmax; i++) { //PGI: edit this line in this way --->  for (int i=rmin; i<=rmax; i++) {
        for (j=cmin; j<=cmax; j++) { //PGI: edit this line in this way --->  for (int j=cmin; j<=cmax; j++) {
@@ -685,7 +683,7 @@ int x=0;
 
  A[i] = SAT2SI16(A[i]+B[i]);
 
- x=A[i];
+ //x=A[i];
 
  }
 
