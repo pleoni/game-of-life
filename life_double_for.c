@@ -231,7 +231,6 @@ for (i=0; i < num_threads; i++) {
 
     int k;	
 	
-	#pragma omp parallel for shared(rmin, rmax, cmin, cmax, grid, next_grid)	
 	for(k=1; k<nsteps; k++)
 
 		{
@@ -431,10 +430,10 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
 {
 
 int i,j;
-
- for (i=rmin;i<=rmax;i++) //PGI: edit this line in this way --->  for (int i=rmin; i<=rmax; i++) {
+ #pragma omp parallel for private(i,j)
+ for (i=rmin;i<=rmax;i++)
  {
-     for (j=cmin;j<=cmax;j++) //PGI: edit this line in this way --->  for (int j=cmin; j<=cmax; j++) {
+     for (j=cmin;j<=cmax;j++)
 	{
          grid[i][j]=next_grid[i][j];  
 	}
@@ -448,9 +447,9 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
  { 
 
   int k,l,j,i;
-
-  for (i=rmin; i<=rmax; i++) { //PGI: edit this line in this way --->  for (int i=rmin; i<=rmax; i++) {
-       for (j=cmin; j<=cmax; j++) { //PGI: edit this line in this way --->  for (int j=cmin; j<=cmax; j++) {
+  #pragma omp parallel for private(i,j)	
+  for (i=rmin; i<=rmax; i++) {
+       for (j=cmin; j<=cmax; j++) {
                comp(ncomp,A[omp_rank],B[omp_rank]);
 	       double neighbors=0.0;
 	       neighbors=grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
