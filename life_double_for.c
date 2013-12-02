@@ -247,7 +247,7 @@ for (i=0; i < num_threads; i++) {
 
 	 	//if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STEP:%d\n", hostname,mpi_rank,omp_rank,omp_size,k); 
 
-  		//#pragma omp single
+  		#pragma omp single
 
 			{
 			copy_border(1, nrows, 1, ncols,  grid);
@@ -429,7 +429,7 @@ void usage(char * argv[])  {
 void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid) 
 {
 
-int i,j;
+ int i,j;
  #pragma omp parallel for private(i,j)
  for (i=rmin;i<=rmax;i++)
  {
@@ -450,7 +450,7 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
   #pragma omp parallel for private(i,j)	
   for (i=rmin; i<=rmax; i++) {
        for (j=cmin; j<=cmax; j++) {
-               comp(ncomp,A[omp_rank],B[omp_rank]);
+               //comp(ncomp,A[omp_rank],B[omp_rank]);
 	       double neighbors=0.0;
 	       neighbors=grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
 	       if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
@@ -658,7 +658,7 @@ void random_initByTime(int rank) {
 }
 
 
-/////////////////////////// clerascreen ////////////////////////////////////
+/////////////////////////// clearscreen ////////////////////////////////////
 
 void clearscreen() {
 
