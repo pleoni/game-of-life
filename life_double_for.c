@@ -41,6 +41,7 @@ int DEBUG=1;
 #include <sys/time.h>  //gettimeofday
 #include <string.h>    //strcpy
 
+#include <openacc.h>
 
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define MIN(x,y) ((x)<(y)?(x):(y))
