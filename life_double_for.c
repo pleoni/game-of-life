@@ -41,8 +41,6 @@ int DEBUG=1;
 #include <sys/time.h>  //gettimeofday
 #include <string.h>    //strcpy
 
-#include <openacc.h>
-
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define MIN(x,y) ((x)<(y)?(x):(y))
 #define SAT2SI16(x) MAX(MIN((x),32767),-32768)
@@ -56,7 +54,10 @@ int DEBUG=1;
 #ifdef OMP
 #include <omp.h>
 #endif /* OMP */
- 
+
+#if _OPENACC
+#include <openacc.h>
+#endif
 
 ///////////////////////////
 
