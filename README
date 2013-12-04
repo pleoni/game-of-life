@@ -29,7 +29,8 @@ PLEASE NOTE: to compile on MIC use "-mmic" option.
 
 Compilation - PGI
 =================
-OMP: pgcc -mp=numa life_double_for.c -DOMP -fast -mp -Minfo -o life_double_for_omp_pgcc
+OMP: pgcc -mp=numa life_double_for.c -DOMP -fast -mp -Minfo -o life_double_for_omp
+ACC: pgcc life_double_for.c -acc -ta=nvidia,time -Minfo=accel -lpgacc -o life_double_for_acc
 
 
 Version History:
