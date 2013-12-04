@@ -231,6 +231,10 @@ for (i=0; i < num_threads; i++) {
 
     int k;	
 	
+#if _OPENACC
+    acc_init(acc_device_nvidia);
+#endif
+	//#pragma acc data copyin(grid) copyout(next_grid)
 	for(k=1; k<nsteps; k++)
 
 		{
@@ -431,8 +435,11 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
 
  int i,j;
  #pragma omp parallel for private(i,j)
+ #pragma acc kernels
+ #pragma acc loop independent
  for (i=rmin;i<=rmax;i++)
  {
+     #pragma acc loop independent
      for (j=cmin;j<=cmax;j++)
 	{
          grid[i][j]=next_grid[i][j];  
@@ -448,9 +455,12 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 
   int k,l,j,i;
   #pragma omp parallel for private(i,j)	
+  #pragma acc kernels
+  #pragma acc loop independent
   for (i=rmin; i<=rmax; i++) {
+       #pragma acc loop independent
        for (j=cmin; j<=cmax; j++) {
-               //comp(ncomp,A[omp_rank],B[omp_rank]);
+               //comp(ncomp,A[omp_rank],B[omp_rank]); <---must be inline with PGI
 	       double neighbors=0.0;
 	       neighbors=grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
 	       if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
