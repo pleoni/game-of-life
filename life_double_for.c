@@ -164,7 +164,6 @@ for (i=0; i < num_threads; i++) {
 
 	for (j=0; j< ncomp; j++) A[i][j]=rand_double()*100;
 	for (j=0; j< ncomp; j++) B[i][j]=rand_double()*100;
-
 }
  
 
@@ -236,7 +235,8 @@ for (i=0; i < num_threads; i++) {
 #if _OPENACC
     acc_init(acc_device_nvidia);
 #endif
-	//#pragma acc data copyin(grid) copyout(next_grid)
+	
+	#pragma acc data copyin(grid[nrows+2][ncols+2]) create(next_grid[nrows+2][ncols+2])
 	for(k=1; k<nsteps; k++)
 
 		{
@@ -246,7 +246,7 @@ for (i=0; i < num_threads; i++) {
 		do_step(rmin,rmax,cmin,cmax, grid, next_grid);
 
 		//#pragma omp barrier
-
+		
 		grid_copy(rmin,rmax,cmin,cmax, grid, next_grid);
 
 		//#pragma omp barrier
@@ -437,11 +437,12 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
 
  int i,j;
  #pragma omp parallel for private(i,j)
- #pragma acc kernels
+ #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2])
+
  #pragma acc loop independent
  for (i=rmin;i<=rmax;i++)
  {
-     #pragma acc loop independent
+    #pragma acc loop independent
      for (j=cmin;j<=cmax;j++)
 	{
          grid[i][j]=next_grid[i][j];  
@@ -456,8 +457,8 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
  { 
 
   int k,l,j,i;
-  #pragma omp parallel for private(i,j)	
-  #pragma acc kernels
+  #pragma omp parallel for private(i,j)
+  #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2])
   #pragma acc loop independent
   for (i=rmin; i<=rmax; i++) {
        #pragma acc loop independent
