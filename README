@@ -8,24 +8,24 @@ Target "COMP" activates comp function (much more operations in every cycle).
 Compilation - GNU
 ==================
 
-Serial: gcc   life.c -o life 
+Serial: gcc   life_double_for.c -o life_double_for 
 
-OMP:    gcc   life.c --define OMP --define COMP -fopenmp -o life_omp 
+OMP:    gcc   life_double_for.c --define OMP --define COMP -fopenmp -o life_double_for_omp 
 
-MPI:    mpicc life.c --define MPI --define COMP -o life_mpi
+MPI:    mpicc life_double_for.c --define MPI --define COMP -o life_double_for_mpi
 
-Hybrid: mpicc life.c --define MPI --define OMP --define COMP -fopenmp -o life_hybrid
+Hybrid: mpicc life_double_for.c --define MPI --define OMP --define COMP -fopenmp -o life_double_for_hybrid
 
 Compilation - INTEL
 ===================
 
-Serial: icc   life.c -o life 
+Serial: icc   life_double_for.c -o life_double_for 
 
-OMP:    icc   life.c -D OMP -D COMP -fopenmp -o life_omp 
+OMP:    icc   life_double_for.c -D OMP -D COMP -fopenmp -o life_double_for_omp 
 
-MPI:    mpicc life.c -D MPI -D COMP -o life_mpi
+MPI:    mpicc life_double_for.c -D MPI -D COMP -o life_double_for_mpi
 
-Hybrid: mpicc life.c -D MPI -D OMP -D COMP -fopenmp -o life_hybrid
+Hybrid: mpicc life_double_for.c -D MPI -D OMP -D COMP -fopenmp -o life_double_for_hybrid
 
 PLEASE NOTE: to compile on MIC use "-mmic" option.
 
