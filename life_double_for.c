@@ -100,7 +100,7 @@ void comp(int n, short *A, short *B);
 
  double ** grid;              
  double ** next_grid;
- short **A, **B; // array for computation
+ double *A, *B; // array for computation
 
 /////////// MPI /////////
 
@@ -148,27 +148,30 @@ int main(int argc, char ** argv) {
  grid      = (double **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init grid
  next_grid = (double **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init next_grid
 
- A      = (short **)  malloc ( sizeof(ptr) * (num_threads)  );  // init A for comp()
- B	= (short **)  malloc ( sizeof(ptr) * (num_threads)  );  // init B for comp()
+// A      = (short **)  malloc ( sizeof(ptr) * (num_threads)  );  // init A for comp()
+// B	= (short **)  malloc ( sizeof(ptr) * (num_threads)  );  // init B for comp()
 
 int i,j;
 
 //int ok;	
-//A= (short *) malloc ( sizeof(ptr) * ncomp ) ; 
-//B= (short *) malloc ( sizeof(ptr) * ncomp ) ; 
+A = (double *) malloc ( sizeof(ptr) * ncomp ) ; 
+B = (double *) malloc ( sizeof(ptr) * ncomp ) ; 
 
-for (i=0; i < num_threads; i++) {
+posix_memalign((void*)&(A[i]), 64, ncomp*sizeof(double));
+posix_memalign((void*)&(B[i]), 64, ncomp*sizeof(double));
 
-	posix_memalign((void**)&(A[i]), 64, ncomp*sizeof(short)); //A memory aligned to 64 bytes
-	posix_memalign((void**)&(B[i]), 64, ncomp*sizeof(short)); //B memory aligned to 64 bytes
+//for (i=0; i < num_threads; i++) {
 
-	for (j=0; j< ncomp; j++) A[i][j]=rand_double()*100;
-	for (j=0; j< ncomp; j++) B[i][j]=rand_double()*100;
-}
+//	posix_memalign((void**)&(A[i]), 64, ncomp*sizeof(short)); //A memory aligned to 64 bytes
+//	posix_memalign((void**)&(B[i]), 64, ncomp*sizeof(short)); //B memory aligned to 64 bytes
+
+//	for (j=0; j< ncomp; j++) A[i][j]=rand_double()*100;
+//	for (j=0; j< ncomp; j++) B[i][j]=rand_double()*100;
+//}
  
 
-//for (i=0; i< ncomp; i++) A[i]=rand_double()*100;
-//for (i=0; i< ncomp; i++) B[i]=rand_double()*100;
+for (i=0; i< ncomp; i++) A[i]=rand_double();//*100;
+for (i=0; i< ncomp; i++) B[i]=rand_double();//*100;
 //for (i=0; i< ncomp; i++) printf("%d ", A[i]);
 
 
@@ -190,8 +193,14 @@ for (i=0; i < num_threads; i++) {
 
 //initialize
 
-    if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d ncomp:%d\n", hostname, mpi_rank, mpi_size, num_threads, ncols,nrows,nsteps,datafile, DEBUG, ncomp);
+    if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", hostname, mpi_rank, mpi_size, num_threads, ncols,nrows,nsteps,datafile, DEBUG);
 
+#ifdef COMP
+	if (DEBUG==1) fprintf(stdout,"\nComp load: %d\n",ncomp);
+#else
+	if (DEBUG==1) fprintf(stdout,"\nComp load: DISABLED\n");
+#endif
+ 
     if (DEBUG==1) fprintf(stderr, "\n%s-%d ALLOCATE MEMORY  (%ld grid + %ld new_grid = %ld bytes ) \n", hostname,mpi_rank, datasize, datasize, datasize*2);
 			   													   
 
@@ -236,7 +245,7 @@ for (i=0; i < num_threads; i++) {
     acc_init(acc_device_nvidia);
 #endif
 	
-	#pragma acc data copyin(grid[nrows+2][ncols+2]) create(next_grid[nrows+2][ncols+2])
+	#pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(next_grid[nrows+2][ncols+2])
 	for(k=1; k<nsteps; k++)
 
 		{
@@ -457,14 +466,20 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
  { 
 
   int k,l,j,i;
-  #pragma omp parallel for private(i,j)
-  #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2])
+  #pragma omp parallel for private(i,j,k)
+  #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp])
   #pragma acc loop independent
   for (i=rmin; i<=rmax; i++) {
        #pragma acc loop independent
        for (j=cmin; j<=cmax; j++) {
-               //comp(ncomp,A[omp_rank],B[omp_rank]); <---must be inline with PGI
-	       double neighbors=0.0;
+               //comp(ncomp,A,B);
+	#ifdef COMP
+	        #pragma ivdep
+		#pragma vector aligned
+		#pragma acc loop independent
+ 		for (k=0; k < ncomp; k++) A[k] = SAT2SI16(A[k]+B[k]);
+	#endif
+		double neighbors=0.0;
 	       neighbors=grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
 	       if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
                   next_grid[i][j] = 0.0;
