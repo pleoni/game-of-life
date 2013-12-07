@@ -3,35 +3,37 @@ LIFE
 
 Purpose of this project is to make a useful performance's measurement tool based on the "Game of Life" (http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life), suitable on HPC systems.
 
+Target "COMP" activates comp function (much more operations in every cycle).
+
 Compilation - GNU
 ==================
 
 Serial: gcc   life.c -o life 
 
-OMP:    gcc   life.c --define OMP -fopenmp -o life_omp 
+OMP:    gcc   life.c --define OMP --define COMP -fopenmp -o life_omp 
 
-MPI:    mpicc life.c --define MPI -o life_mpi
+MPI:    mpicc life.c --define MPI --define COMP -o life_mpi
 
-Hybrid: mpicc life.c --define MPI --define OMP -fopenmp -o life_hybrid
+Hybrid: mpicc life.c --define MPI --define OMP --define COMP -fopenmp -o life_hybrid
 
 Compilation - INTEL
 ===================
 
 Serial: icc   life.c -o life 
 
-OMP:    icc   life.c -D OMP -fopenmp -o life_omp 
+OMP:    icc   life.c -D OMP -D COMP -fopenmp -o life_omp 
 
-MPI:    mpicc life.c -D MPI -o life_mpi
+MPI:    mpicc life.c -D MPI -D COMP -o life_mpi
 
-Hybrid: mpicc life.c -D MPI -D OMP -fopenmp -o life_hybrid
+Hybrid: mpicc life.c -D MPI -D OMP -D COMP -fopenmp -o life_hybrid
 
 PLEASE NOTE: to compile on MIC use "-mmic" option.
 
 Compilation - PGI
 =================
-OMP: pgcc -mp=numa life_double_for.c -DOMP -fast -mp -Minfo -o life_double_for_omp
+OMP: pgcc -mp=numa life_double_for.c -DOMP -DCOMP -fast -mp -Minfo -o life_double_for_omp
 
-ACC: pgcc life_double_for.c -acc -ta=nvidia,time -Minfo=accel -lpgacc -o life_double_for_acc
+ACC: pgcc life_double_for.c -acc -DCOMP -ta=nvidia,time -Minfo=accel -lpgacc -o life_double_for_acc
 (on nvidia device type 'nvidia-smi -l 1' to monitor GPUs activity)
 
 Version History:
