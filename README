@@ -34,7 +34,8 @@ Compilation - PGI
 OMP: pgcc -mp=numa life_double_for.c -DOMP -DCOMP -fast -mp -Minfo -o life_double_for_omp
 
 ACC: pgcc life_double_for.c -acc -DCOMP -ta=nvidia,time -Minfo=accel -lpgacc -o life_double_for_acc
-(on nvidia device type 'nvidia-smi -l 1' to monitor GPUs activity)
+
+~ on nvidia device type 'nvidia-smi -l 1' to monitor GPUs activity
 
 Version History:
 ================
