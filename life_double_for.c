@@ -154,13 +154,11 @@ int main(int argc, char ** argv) {
 int i,j;
 
 #ifdef COMP	
-A = (double *) malloc ( sizeof(ptr) * ncomp ) ; 
-B = (double *) malloc ( sizeof(ptr) * ncomp ) ; 
-//posix_memalign((void**)&(A[i]), 64, ncomp*sizeof(double));
-//posix_memalign((void**)&(B[i]), 64, ncomp*sizeof(double));
+A = (double *) malloc ( sizeof(ptr) * ncomp ); 
+B = (double *) malloc ( sizeof(ptr) * ncomp ); 
 
-double *A = (double*) memalign(64, ncomp*sizeof(ptr));
-double *B = (double*) memalign(64, ncomp*sizeof(ptr));
+A = memalign(64, ncomp*sizeof(ptr));
+B = memalign(64, ncomp*sizeof(ptr));
 
 //for (i=0; i < num_threads; i++) {
 
@@ -170,11 +168,9 @@ double *B = (double*) memalign(64, ncomp*sizeof(ptr));
 //	for (j=0; j< ncomp; j++) A[i][j]=rand_double()*100;
 //	for (j=0; j< ncomp; j++) B[i][j]=rand_double()*100;
 //}
- 
 
 for (i=0; i< ncomp; i++) A[i]=rand_double();//*100;
 for (i=0; i< ncomp; i++) B[i]=rand_double();//*100;
-//for (i=0; i< ncomp; i++) printf("%d ", A[i]);
 #endif //////// A[] and B[] allocation
 
 
