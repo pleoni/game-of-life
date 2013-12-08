@@ -90,7 +90,7 @@ void comp(int n, short *A, short *B);
  char hostname[80];
  long datasize;
  int ncomp=1000;            //!< Computation load
-
+ int mygpu=0; //default GPU
 
 // OMP
  int num_threads=1;
@@ -242,7 +242,28 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();//*100;
     int k;	
 	
 #if _OPENACC
-    acc_init(acc_device_nvidia);
+   acc_init(acc_device_nvidia);
+   int myrealgpu, num_devices;
+   acc_device_t my_device_type;
+
+	#ifdef CAPS
+   		my_device_type = acc_device_cuda;
+	#else
+   		my_device_type = acc_device_nvidia;
+	#endif
+
+   acc_set_device_type(my_device_type) ;
+   num_devices = acc_get_num_devices(my_device_type) ;
+   fprintf(stderr,"\nNumber of devices available: %d \n",num_devices);
+   acc_set_device_num(mygpu,my_device_type);
+   fprintf(stderr,"Trying to use GPU: %d\n",mygpu);
+   myrealgpu = acc_get_device_num(my_device_type);
+   fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
+
+   if(mygpu != myrealgpu) {
+     fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
+     exit(1);
+   }
 #endif
 	
 	#pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(next_grid[nrows+2][ncols+2])
@@ -401,9 +422,10 @@ MPI_Barrier(MPI_COMM_WORLD);
 void options(int argc, char * argv[]) {
 
   int i;
-   while ( (i = getopt(argc, argv, "W:vc:r:s:d:ht:f:C:n:")) != -1) {
+   while ( (i = getopt(argc, argv, "W:vc:r:s:d:ht:f:C:n:G:")) != -1) {
         switch (i) {
         case 'c':  ncols       = strtol(optarg, NULL, 10);  break;
+	case 'G':  mygpu       = strtol(optarg, NULL, 10);  break;
         case 'r':  nrows       = strtol(optarg, NULL, 10);  break;
         case 's':  nsteps      = strtol(optarg, NULL, 10);  break;
         case 'n':  ncomp       = strtol(optarg, NULL, 10);  break;
@@ -424,10 +446,11 @@ void options(int argc, char * argv[]) {
 
 void usage(char * argv[])  {
 
-  printf ("\n%s [-c ncols] [-r nrows] [-t num_thr] [-s nsteps] [-d debug] [-f filename] [-W 1|0] [-C CKPTsteps] [-v] [-h]",argv[0]); 
+  printf ("\n%s [-c ncols] [-r nrows] [-t num_thr] [-s nsteps] [-G ngpu] [-d debug] [-f filename] [-W 1|0] [-C CKPTsteps] [-v] [-h]",argv[0]); 
   printf ("\n -d <0|1|2> : <no output | debug info (default) | display interactively> ");   
   printf ("\n -s <int>   : steps  (step num. default=1000)"); 
-  printf ("\n -n <int>   : Computation load  (default=10000)"); 
+  printf ("\n -n <int>   : Computation load  (default=1000)"); 
+  printf ("\n -G <int>   : GPU (default 0)"); 
   printf ("\n -C <int>   : CheckPoint freq. (step num. default=500)");
   printf ("\n -t <int>   : Threads num ( default = OMP_NUM_THREADS if set, otherwise = cores num"); 
   printf ("\n -W <1|0>   : Write yes|no(default) the grid config into a file  "); 
