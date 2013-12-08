@@ -8,9 +8,9 @@ Target "COMP" activates comp function (much more operations in every cycle).
 Compilation - GNU
 ==================
 
-Serial: gcc   life_double_for.c -o life_double_for 
+Serial: gcc life_double_for.c -o life_double_for 
 
-OMP:    gcc   life_double_for.c --define OMP --define COMP -fopenmp -o life_double_for_omp 
+OMP:    gcc life_double_for.c --define OMP --define COMP -fopenmp -o life_double_for_omp 
 
 MPI:    mpicc life_double_for.c --define MPI --define COMP -o life_double_for_mpi
 
@@ -19,9 +19,9 @@ Hybrid: mpicc life_double_for.c --define MPI --define OMP --define COMP -fopenmp
 Compilation - INTEL
 ===================
 
-Serial: icc   life_double_for.c -o life_double_for 
+Serial: icc life_double_for.c -o life_double_for 
 
-OMP:    icc   life_double_for.c -D OMP -D COMP -fopenmp -o life_double_for_omp 
+OMP:    icc life_double_for.c -O3 -D OMP -D COMP -fopenmp -vec-report -o life_double_for_omp
 
 MPI:    mpicc life_double_for.c -D MPI -D COMP -o life_double_for_mpi
 
