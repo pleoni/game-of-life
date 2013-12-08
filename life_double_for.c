@@ -514,7 +514,8 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 		#if _OPENACC
 			#pragma acc loop independent
 		#endif
- 		for (k=0; k < ncomp; k++) A[k] = A[k] + B[k];//A[k] = SAT2SI16(A[k]+B[k]);
+		#pragma omp for
+ 		for (k=0; k < ncomp; k++) A[k] = SAT2SI16(A[k]+B[k]);
 	#endif
 		double neighbors=0.0;
 	       neighbors=grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
