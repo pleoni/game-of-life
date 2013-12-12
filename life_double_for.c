@@ -157,8 +157,11 @@ int i,j;
 A = (double *) malloc ( sizeof(ptr) * ncomp ); 
 B = (double *) malloc ( sizeof(ptr) * ncomp ); 
 
-A = memalign(64, ncomp*sizeof(ptr));
-B = memalign(64, ncomp*sizeof(ptr));
+//A = memalign(64, ncomp*sizeof(ptr));
+//B = memalign(64, ncomp*sizeof(ptr));
+
+posix_memalign((void*)&(A), 64, ncomp*sizeof(double));
+posix_memalign((void*)&(B), 64, ncomp*sizeof(double));
 
 //for (i=0; i < num_threads; i++) {
 
