@@ -1,35 +1,4 @@
-/*!
-
-\mainpage LIFE
-\section intro Introduzione
-Game of life\n
-\version   13.10.16
-\author Roberto Alfieri - University of Parma - INFN
-
-
-/*
-
-  Roberto Alfieri - 
-
-  Version History:
-
-  13.10.16   Fix vectors alignment (seg. fault on MIC)
-  13.10.08   Add vectorized computation
-  12.09.14   Adapted for serial version
-  12.06.13   added ifdef MPI
-  11.07.15   support of OMP_NUM_THREADS
-  11.05.25   openMP splitted by rows, MPI by columns; parallized (openMP) version of grid_init
-  11.03.20   split main and grid routines (life_common.h)
-  10.10.04   Add options -f -v
-
-
-Serial: gcc   life.c -o life 
-
-OMP:    gcc   life.c --define OMP -fopenmp -o life_omp 
-MPI:    mpicc life.c --define MPI -o life_mpi
-Hybrid: mpicc life.c --define MPI --define OMP -fopenmp -o life_hybrid
-
-*/
+// Roberto Alfieri - University of Parma - INFN
 
 char version[]="13.11.29";
 int DEBUG=1;
@@ -77,7 +46,6 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
 void random_initByTime(int rank) ;
 void clearscreen();
 void copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid);
-//void comp(int n, short *A, short *B);
 
 
  int nsteps=1000;       //!< Number of Steps 
@@ -92,15 +60,15 @@ void copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid);
  int ncomp=1000;            //!< Computation load
  int mygpu=0; //default GPU
 
-// OMP
- int num_threads=1;
- //MPI
- char mpirank_name[4]; 
- char mpisize_name[4]; 
-
  double ** grid;              
  double ** next_grid;
  double *A, *B; // array for computation
+
+// OMP
+ int num_threads=1;  //default omp threads
+ //MPI
+ char mpirank_name[4]; 
+ char mpisize_name[4];
 
 /////////// MPI /////////
 
@@ -130,72 +98,54 @@ int main(int argc, char ** argv) {
 
 #ifdef OMP
 
-//char *nt=getenv("OMP_NUM_THREADS");
-//  printf ("valore OMP_NUM_THREADS=%s \n", nt);
-//  if ( nt != NULL )  num_threads=strtol(nt,NULL,0);
-
-  omp_set_num_threads(num_threads);  // if is set (>0) keep this value else use$
+	omp_set_num_threads(num_threads);  // if is set (>0) keep this value else use$
 
 #endif /* OMP */
 
 
- gethostname(hostname, 100);  /* get hostname */
- datasize=nrows*ncols*sizeof(double) ;     /* tot number of bytes */ 
+gethostname(hostname, 100);  /* get hostname */
+datasize=nrows*ncols*sizeof(double) ;     /* tot number of bytes */ 
 	
 
- double *ptr;
+double *ptr;
 
- grid      = (double **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init grid
- next_grid = (double **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init next_grid
-
-// A      = (short **)  malloc ( sizeof(ptr) * (num_threads)  );  // init A for comp()
-// B	= (short **)  malloc ( sizeof(ptr) * (num_threads)  );  // init B for comp()
+grid      = (double **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init grid
+next_grid = (double **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init next_grid
 
 int i,j;
 
-#ifdef COMP	
+#ifdef COMP
+
 A = (double *) malloc ( sizeof(ptr) * ncomp ); 
 B = (double *) malloc ( sizeof(ptr) * ncomp ); 
 
-//A = memalign(64, ncomp*sizeof(ptr));
-//B = memalign(64, ncomp*sizeof(ptr));
+posix_memalign((void*)&(A), 64, ncomp*sizeof(double)); //memory alignment
+posix_memalign((void*)&(B), 64, ncomp*sizeof(double)); //memory alignment
 
-posix_memalign((void*)&(A), 64, ncomp*sizeof(double));
-posix_memalign((void*)&(B), 64, ncomp*sizeof(double));
+for (i=0; i< ncomp; i++) A[i]=rand_double();
+for (i=0; i< ncomp; i++) B[i]=rand_double();
 
-//for (i=0; i < num_threads; i++) {
-
-//	posix_memalign((void**)&(A[i]), 64, ncomp*sizeof(short)); //A memory aligned to 64 bytes
-//	posix_memalign((void**)&(B[i]), 64, ncomp*sizeof(short)); //B memory aligned to 64 bytes
-
-//	for (j=0; j< ncomp; j++) A[i][j]=rand_double()*100;
-//	for (j=0; j< ncomp; j++) B[i][j]=rand_double()*100;
-//}
-
-for (i=0; i< ncomp; i++) A[i]=rand_double();//*100;
-for (i=0; i< ncomp; i++) B[i]=rand_double();//*100;
 #endif //////// A[] and B[] allocation
 
 
 #ifdef MPI
 
-   MPI_Init(&argc, &argv); 
-   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-   prev_rank = (mpi_rank-1+mpi_size) % mpi_size;
-   next_rank = (mpi_rank+1) % mpi_size; 
+	MPI_Init(&argc, &argv); 
+	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+	prev_rank = (mpi_rank-1+mpi_size) % mpi_size;
+	next_rank = (mpi_rank+1) % mpi_size; 
 
-   sprintf(mpirank_name,"%d",mpi_rank);  /* convert integer to string */
-   sprintf(mpisize_name,"%d",mpi_size);  /* convert integer to string */ 
+	sprintf(mpirank_name,"%d",mpi_rank);  /* convert integer to string */
+	sprintf(mpisize_name,"%d",mpi_size);  /* convert integer to string */ 
 
 #endif /* MPI */
 
-	if (!strcmp(datafile,""))
-        	sprintf(datafile,"life_%ld_%d_%d.dat",datasize,mpi_rank,mpi_size);  /* file name */	
+	if (!strcmp(datafile,"")) sprintf(datafile,"life_%ld_%d_%d.dat",datasize,mpi_rank,mpi_size);  /* file name */	
 
 //initialize
 
-    if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", hostname, mpi_rank, mpi_size, num_threads, ncols,nrows,nsteps,datafile, DEBUG);
+	if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", hostname, mpi_rank, mpi_size, num_threads, ncols,nrows,nsteps,datafile, DEBUG);
 
 #ifdef COMP
 	if (DEBUG==1) fprintf(stdout,"\nComp load: %d\n",ncomp);
@@ -203,20 +153,20 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();//*100;
 	if (DEBUG==1) fprintf(stdout,"\nComp load: DISABLED\n");
 #endif
  
-    if (DEBUG==1) fprintf(stderr, "\n%s-%d ALLOCATE MEMORY  (%ld grid + %ld new_grid = %ld bytes ) \n", hostname,mpi_rank, datasize, datasize, datasize*2);
+	if (DEBUG==1) fprintf(stderr, "\n%s-%d ALLOCATE MEMORY  (%ld grid + %ld new_grid = %ld bytes ) \n", hostname,mpi_rank, datasize, datasize, datasize*2);
 			   													   
 
-    if (DEBUG==1) fprintf(stderr, "%s-%d  %d iterations - Start timer\n",hostname ,mpi_rank, nsteps);
-    if (DEBUG==1) fprintf(stderr,"%s-%d  START_MEM_ALLOC \n", hostname,mpi_rank); 		
+	if (DEBUG==1) fprintf(stderr, "%s-%d  %d iterations - Start timer\n",hostname ,mpi_rank, nsteps);
+	if (DEBUG==1) fprintf(stderr,"%s-%d  START_MEM_ALLOC \n", hostname,mpi_rank); 		
 
-    gettimeofday(&tempo,0);  ta=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA
+	gettimeofday(&tempo,0);  ta=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA
 
-    init_grid( nrows, 1, nrows+1, ncols, &grid, base_life);
-    init_grid( nrows, 1, nrows+1, ncols, &next_grid, 0);
+	init_grid( nrows, 1, nrows+1, ncols, &grid, base_life);
+	init_grid( nrows, 1, nrows+1, ncols, &next_grid, 0);
 
-    gettimeofday(&tempo,0);  tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
+	gettimeofday(&tempo,0);  tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
 
-    if (DEBUG==1) fprintf (stderr, "%s-%d  END_MEM_ALLOC %f sec - START_DO_STEPS %d rows:%d-%d cols:%d-%d\n", hostname,mpi_rank, tb-ta, nsteps, 0,nrows+1,0,ncols+1);
+	if (DEBUG==1) fprintf (stderr, "%s-%d  END_MEM_ALLOC %f sec - START_DO_STEPS %d rows:%d-%d cols:%d-%d\n", hostname,mpi_rank, tb-ta, nsteps, 0,nrows+1,0,ncols+1);
     
 
  // #pragma omp parallel  private(omp_rank)
@@ -225,47 +175,44 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();//*100;
 
 	#ifdef OMP 
 
-	    omp_rank=omp_get_thread_num();
-	    omp_size=omp_get_num_threads();
+	omp_rank=omp_get_thread_num();
+	omp_size=omp_get_num_threads();
 
 	#endif /* OMP */	
 
-    //int rmin=(nrows*omp_rank)/omp_size+1;    //first row
-    //int rmax=(nrows*(omp_rank+1))/omp_size;  //last row 
-    //int cmin=1;      // first col
-    //int cmax=ncols;  // last col
+	//int rmin=(nrows*omp_rank)/omp_size+1;    //first row
+	//int rmax=(nrows*(omp_rank+1))/omp_size;  //last row 
+	//int cmin=1;      // first col
+	//int cmax=ncols;  // last col
 
-    int rmin=1;
-    int cmin=1;
+	int rmin=1;
+	int cmin=1;
 
-    int rmax=nrows;
-    int cmax=ncols;
+	int rmax=nrows;
+	int cmax=ncols;
 
-    int k;	
+	int k;	
 	
 #if _OPENACC
-   acc_init(acc_device_nvidia);
-   int myrealgpu, num_devices;
-   acc_device_t my_device_type;
+	acc_init(acc_device_nvidia);
+	int myrealgpu, num_devices;
+	acc_device_t my_device_type;
 
-	#ifdef CAPS
-   		my_device_type = acc_device_cuda;
-	#else
-   		my_device_type = acc_device_nvidia;
-	#endif
+	//my_device_type = acc_device_cuda; //uncomment this if you are using CAPS
+	my_device_type = acc_device_nvidia; //comment this if you are using CAPS
 
-   acc_set_device_type(my_device_type) ;
-   num_devices = acc_get_num_devices(my_device_type) ;
-   fprintf(stderr,"\nNumber of devices available: %d \n",num_devices);
-   acc_set_device_num(mygpu,my_device_type);
-   fprintf(stderr,"Trying to use GPU: %d\n",mygpu);
-   myrealgpu = acc_get_device_num(my_device_type);
-   fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
+	acc_set_device_type(my_device_type) ;
+	num_devices = acc_get_num_devices(my_device_type) ;
+	fprintf(stderr,"\nNumber of devices available: %d \n",num_devices);
+	acc_set_device_num(mygpu,my_device_type);
+	fprintf(stderr,"Trying to use GPU: %d\n",mygpu);
+	myrealgpu = acc_get_device_num(my_device_type);
+	fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
 
-   if(mygpu != myrealgpu) {
-     fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
-     exit(1);
-   }
+	if(mygpu != myrealgpu) {
+		fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
+	exit(1);
+	}
 #endif
 
 #if _OPENACC	
@@ -275,17 +222,9 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();//*100;
 
 		{
 
-		//if (DEBUG==1) printf ("%d \n",k);
-
 		do_step(rmin,rmax,cmin,cmax, grid, next_grid);
-
-		//#pragma omp barrier
 		
 		grid_copy(rmin,rmax,cmin,cmax, grid, next_grid);
-
-		//#pragma omp barrier
-
-	 	//if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STEP:%d\n", hostname,mpi_rank,omp_rank,omp_size,k); 
 
   		#pragma omp single
 
@@ -321,7 +260,7 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();//*100;
 
 	if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STOP\n", hostname,mpi_rank,omp_rank,omp_size); 	
 
-  } // //end openMP parallel
+  } // end openMP parallel
 
 
     gettimeofday(&tempo,0); tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
@@ -506,7 +445,6 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 	#pragma acc loop independent
 #endif
        for (j=cmin; j<=cmax; j++) {
-               //comp(ncomp,A,B);
 	#ifdef COMP
 	        #pragma ivdep
 		#pragma vector aligned
@@ -525,7 +463,6 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
                   next_grid[i][j] =  grid[i][j];
 		}
 	}
-
  }
 
 /////////////////////////// do_display ////////////////////////////////////
@@ -545,7 +482,6 @@ void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid)
 		printf ("\n");
 	}
 
-   //for(i=cmin;i<=cmax;i++) printf("-"); printf ("\n");
    usleep(delay);
 }
 
@@ -564,7 +500,6 @@ void allocate_grid(int nrows, int ncols, double *** grid){
         }
     }
 }
-
 
 /////////////////////////// init_grid ////////////////////////////////////
 
@@ -592,7 +527,6 @@ void init_grid(int nrows, int rmin, int rmax, int ncols, double *** grid, double
 
 	}
 }
-
 
 /////////////////////////// save_grid ////////////////////////////////////
 
@@ -632,7 +566,6 @@ printf("#W-Bytes \t time(sec)  \t MBytes/s \t ExecutionHost\n");
 printf("%ld   \t %2.6f  \t %f \t %s \n", datasize , dt12, 1.0e-6 * datasize /dt12, hostname);
 
 }
-
 
 /////////////////////////// load_grid ////////////////////////////////////
 
@@ -681,8 +614,6 @@ return 1;
 
 }
 
-
-
 /////////////////////////// randomize_grid ////////////////////////////////////
 
 void randomize_grid(int nrows, int ncols, double ** grid, double prob){
@@ -707,7 +638,6 @@ double rand_double() {
 
 }
 
-
 /////////////////////////// random_iniyByTime ////////////////////////////////////
 
 void random_initByTime(int rank) {
@@ -721,35 +651,10 @@ void random_initByTime(int rank) {
 
 }
 
-
 /////////////////////////// clearscreen ////////////////////////////////////
 
 void clearscreen() {
 
 if (system( "clear" )) system( "cls" );
-
-}
-
-
-//////////////////////////// comp //////////////////////////////////////////
-
-void comp(int n, short *A, short *B) {
-
-int i;
-int x=0;
-
-#pragma ivdep
-
-#pragma vector aligned
-
- for (i=0; i <n; i++) {
-
- A[i] = SAT2SI16(A[i]+B[i]);
-
- //x=A[i];
-
- }
-
-//printf ("comp executed : %d \n", x); 
 
 }
