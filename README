@@ -1,5 +1,5 @@
-LIFE
-====
+Game of Life
+============
 
 Purpose of this project is to make a useful performance's measurement tool based on the "Game of Life" (http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life), suitable on HPC systems.
 
@@ -31,6 +31,7 @@ PLEASE NOTE: to compile on MIC use "-mmic" option.
 
 Compilation - PGI
 =================
+
 OMP: pgcc -mp=numa life_double_for.c -DOMP -DCOMP -fast -mp -Minfo -o life_double_for_omp
 
 ACC: pgcc life_double_for.c -acc -DCOMP -ta=nvidia,time -Minfo=accel -lpgacc -o life_double_for_acc
@@ -39,6 +40,8 @@ ACC: pgcc life_double_for.c -acc -DCOMP -ta=nvidia,time -Minfo=accel -lpgacc -o 
 
 Version History:
 ================
+
+  13.10.21   Code Uploaded on Github --> https://github.com/pleoni/game-of-life
 
   13.10.16   Fix vectors alignment (seg. fault on MIC)
 
