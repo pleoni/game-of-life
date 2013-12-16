@@ -10,7 +10,7 @@ Compilation - GNU
 
 Serial: gcc life_double_for.c -o life_double_for 
 
-OMP:    gcc life_double_for.c --define OMP --define COMP -fopenmp -o life_double_for_omp 
+OMP:    gcc life_double_for.c -O3 --define OMP --define COMP -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1 -o life_double_for_omp
 
 MPI:    mpicc life_double_for.c --define MPI --define COMP -o life_double_for_mpi
 
