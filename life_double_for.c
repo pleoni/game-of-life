@@ -266,7 +266,11 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
     gettimeofday(&tempo,0); tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
 
     if (DEBUG>0) fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tb-ta);
-
+/*
+	double total_kern_flop = (8+ncomp)*(nrows*ncols);	
+	double kern_flops = (total_kern_flop*nsteps)/(tb-ta);
+	printf("\nTotal flop is: %e ~ Speed is: %e Flop/s \n\n", total_kern_flop*nsteps, kern_flops);
+*/
 	if (Write==1) 
 		{
 		if (DEBUG==1) fprintf(stderr, "\n%s-%d PROGRAM END, saving on file %s..  \n",hostname,mpi_rank, datafile);
