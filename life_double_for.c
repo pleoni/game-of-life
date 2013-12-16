@@ -118,12 +118,9 @@ int i,j;
 
 A = (double *) malloc ( sizeof(ptr) * ncomp ); 
 B = (double *) malloc ( sizeof(ptr) * ncomp );
-C = (double *) malloc ( sizeof(ptr) * ncomp );
-double sum;
 
 posix_memalign((void*)&(A), 64, ncomp*sizeof(double)); //memory alignment
 posix_memalign((void*)&(B), 64, ncomp*sizeof(double)); //memory alignment
-posix_memalign((void*)&(C), 64, ncomp*sizeof(double)); //memory alignment
 
 for (i=0; i< ncomp; i++) A[i]=rand_double();
 for (i=0; i< ncomp; i++) B[i]=rand_double();
