@@ -117,10 +117,13 @@ int i,j;
 #ifdef COMP
 
 A = (double *) malloc ( sizeof(ptr) * ncomp ); 
-B = (double *) malloc ( sizeof(ptr) * ncomp ); 
+B = (double *) malloc ( sizeof(ptr) * ncomp );
+C = (double *) malloc ( sizeof(ptr) * ncomp );
+double sum;
 
 posix_memalign((void*)&(A), 64, ncomp*sizeof(double)); //memory alignment
 posix_memalign((void*)&(B), 64, ncomp*sizeof(double)); //memory alignment
+posix_memalign((void*)&(C), 64, ncomp*sizeof(double)); //memory alignment
 
 for (i=0; i< ncomp; i++) A[i]=rand_double();
 for (i=0; i< ncomp; i++) B[i]=rand_double();
@@ -435,7 +438,8 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
  { 
 
   int k,l,j,i;
-  #pragma omp parallel for private(i,j,k)
+  double sum;
+  #pragma omp parallel for private(i,j,k) reduction(+: sum)
 #if _OPENACC
 	#pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp])
 	#pragma acc loop independent
@@ -451,7 +455,10 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 		#if _OPENACC
 			#pragma acc loop independent
 		#endif
- 		for (k=0; k < ncomp; k++) A[k] = SAT2SI16(A[k]+B[k]);
+				
+ 		for (k=0; k < ncomp; k++) {
+			sum += A[k] + B[k];
+					}
 	#endif
 		double neighbors=0.0;
 	       neighbors=grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
@@ -463,6 +470,7 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
                   next_grid[i][j] =  grid[i][j];
 		}
 	}
+
  }
 
 /////////////////////////// do_display ////////////////////////////////////
