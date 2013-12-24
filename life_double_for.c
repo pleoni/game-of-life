@@ -15,6 +15,13 @@ int DEBUG=1;
 #define SAT2SI16(x) MAX(MIN((x),32767),-32768)
 
 
+#ifdef MIC
+#include "offload.h"
+#define REUSE length(0) alloc_if(0) free_if(0)
+#define ALLOC alloc_if(1) free_if(0)
+#define FREE alloc_if(0) free_if(1)
+#endif
+
 #ifdef MPI
 #include <mpi.h>
 #endif /* MPI */
@@ -215,6 +222,25 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
 	}
 #endif
 
+#ifdef MIC
+  _Offload_status x;
+
+        OFFLOAD_STATUS_INIT(x);
+        #pragma offload target(mic:0) status(x) optional
+        {
+                if (_Offload_get_device_number() < 0) {
+                        printf("optional offload ran on CPU\n");
+                } else {
+                        printf("optional offload ran on MIC\n");
+                }
+        }
+	if (x.result == OFFLOAD_SUCCESS) {
+                printf("optional offload was successful\n");
+        } else {
+                printf("optional offload failed\n");
+        }
+#endif
+
 #if _OPENACC	
 	#pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(next_grid[nrows+2][ncols+2])
 #endif
@@ -256,7 +282,7 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
 		   // checkpointing - end /////////////////////////////////////
 
 			}//end omp single
-		} 
+		}
 
 	if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STOP\n", hostname,mpi_rank,omp_rank,omp_size); 	
 
@@ -413,7 +439,9 @@ void usage(char * argv[])  {
 
 void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid) 
 {
-
+#pragma offload_transfer target (mic) in(grid:length(nrows+2*ncols+2) ALLOC) in(next_grid:length(nrows+2*ncols+2) ALLOC)
+#pragma offload target(mic) in(grid: REUSE) in(next_grid: REUSE)
+{
  int i,j;
  #pragma omp parallel for private(i,j)
 #if _OPENACC
@@ -431,13 +459,14 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
 	}
  }
 }
+#pragma offload_transfer target(mic) nocopy(grid,next_grid:length(nrows+2*ncols+2) FREE)
+}
 
 ////////////////////////////// do_step //////////////////////////////
 
 void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid)
 
- { 
-
+ {
   int k,l,j,i;
   double sum;
   #pragma omp parallel for private(i,j,k) reduction(+: sum)
@@ -449,6 +478,9 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 #if _OPENACC
 	#pragma acc loop independent
 #endif
+#pragma offload_transfer target (mic) in(grid,next_grid:length(nrows+2*ncols+2) ALLOC) 
+#pragma offload target(mic) in(grid:REUSE) in(next_grid:REUSE)
+{
        for (j=cmin; j<=cmax; j++) {
 	#ifdef COMP
 	        #pragma ivdep
@@ -471,8 +503,9 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
                   next_grid[i][j] =  grid[i][j];
 		}
 	}
-
- }
+}
+#pragma offload_transfer target(mic) nocopy(grid,next_grid:length(nrows+2*ncols+2) FREE)
+}
 
 /////////////////////////// do_display ////////////////////////////////////
 
