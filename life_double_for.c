@@ -54,6 +54,8 @@ void random_initByTime(int rank) ;
 void clearscreen();
 void copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid);
 
+void init_GPU();
+void init_MIC();
 
  int nsteps=1000;       //!< Number of Steps 
  int ncols=80;          //!< Number of Columns 
@@ -65,10 +67,12 @@ void copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid);
  char hostname[80];
  long datasize;
  int ncomp=1000;            //!< Computation load
+
  int mygpu=0; //default GPU
 
  double ** grid;              
  double ** next_grid;
+
  double *A, *B; // array for computation
 
 // OMP
@@ -179,7 +183,6 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
  // #pragma omp parallel  private(omp_rank)
 
   {
-
 	#ifdef OMP 
 
 	omp_rank=omp_get_thread_num();
@@ -201,44 +204,11 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
 	int k;	
 	
 #if _OPENACC
-	acc_init(acc_device_nvidia);
-	int myrealgpu, num_devices;
-	acc_device_t my_device_type;
-
-	//my_device_type = acc_device_cuda; //uncomment this if you are using CAPS
-	my_device_type = acc_device_nvidia; //comment this if you are using CAPS
-
-	acc_set_device_type(my_device_type) ;
-	num_devices = acc_get_num_devices(my_device_type) ;
-	fprintf(stderr,"\nNumber of devices available: %d \n",num_devices);
-	acc_set_device_num(mygpu,my_device_type);
-	fprintf(stderr,"Trying to use GPU: %d\n",mygpu);
-	myrealgpu = acc_get_device_num(my_device_type);
-	fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
-
-	if(mygpu != myrealgpu) {
-		fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
-	exit(1);
-	}
+	init_GPU();
 #endif
 
 #ifdef MIC
-  _Offload_status x;
-
-        OFFLOAD_STATUS_INIT(x);
-        #pragma offload target(mic:0) status(x) optional
-        {
-                if (_Offload_get_device_number() < 0) {
-                        printf("optional offload ran on CPU\n");
-                } else {
-                        printf("optional offload ran on MIC\n");
-                }
-        }
-	if (x.result == OFFLOAD_SUCCESS) {
-                printf("optional offload was successful\n");
-        } else {
-                printf("optional offload failed\n");
-        }
+	init_MIC();
 #endif
 
 #if _OPENACC	
@@ -292,11 +262,7 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
     gettimeofday(&tempo,0); tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
 
     if (DEBUG>0) fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tb-ta);
-/*
-	double total_kern_flop = (8+ncomp)*(nrows*ncols);	
-	double kern_flops = (total_kern_flop*nsteps)/(tb-ta);
-	printf("\nTotal flop is: %e ~ Speed is: %e Flop/s \n\n", total_kern_flop*nsteps, kern_flops);
-*/
+
 	if (Write==1) 
 		{
 		if (DEBUG==1) fprintf(stderr, "\n%s-%d PROGRAM END, saving on file %s..  \n",hostname,mpi_rank, datafile);
@@ -700,3 +666,57 @@ void clearscreen() {
 if (system( "clear" )) system( "cls" );
 
 }
+
+////////////////////////////init_MIC//////////////////////
+
+#ifdef MIC
+void init_MIC() {
+
+	_Offload_status x;
+
+        OFFLOAD_STATUS_INIT(x);
+        #pragma offload target(mic:0) status(x) optional
+        {
+                if (_Offload_get_device_number() < 0) {
+                        printf("optional offload ran on CPU\n");
+                } else {
+                        printf("optional offload ran on MIC\n");
+                }
+        }
+	if (x.result == OFFLOAD_SUCCESS) {
+                printf("optional offload was successful\n");
+        } else {
+                printf("optional offload failed\n");
+        }
+}
+#endif
+
+//////////////////////// init_GPU ///////////////////////////////////////////
+
+#if _OPENACC
+void init_GPU() {
+
+	acc_init(acc_device_nvidia);
+	int myrealgpu, num_devices;
+	acc_device_t my_device_type;
+
+	//my_device_type = acc_device_cuda; //uncomment this if you are using CAPS
+	my_device_type = acc_device_nvidia; //comment this if you are using CAPS
+
+	acc_set_device_type(my_device_type) ;
+	
+	num_devices = acc_get_num_devices(my_device_type) ;
+	fprintf(stderr,"\nNumber of devices available: %d \n",num_devices);
+	
+	acc_set_device_num(mygpu,my_device_type);
+	fprintf(stderr,"Trying to use GPU: %d\n",mygpu);
+	
+	myrealgpu = acc_get_device_num(my_device_type);
+	fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
+
+	if(mygpu != myrealgpu) {
+		fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
+	exit(1);
+	}
+}
+#endif
