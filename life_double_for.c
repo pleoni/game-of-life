@@ -444,7 +444,7 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 #if _OPENACC
 	#pragma acc loop independent
 #endif
-#pragma offload_transfer target (mic) in(grid,next_grid:length(nrows+2*ncols+2) ALLOC) 
+#pragma offload_transfer target (mic) in(grid:length(nrows+2*ncols+2) ALLOC) nocopy(next_grid:length(nrows+2*ncols+2))
 #pragma offload target(mic) in(grid:REUSE) in(next_grid:REUSE)
 {
        for (j=cmin; j<=cmax; j++) {
