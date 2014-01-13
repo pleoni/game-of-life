@@ -8,33 +8,36 @@ Target "COMP" activates comp function (much more operations in every cycle).
 Compilation - GNU
 ==================
 
-Serial: gcc life_double_for.c -o life_double_for 
+Serial: gcc life_hpc.c -o life_hpc 
 
-OMP:    gcc life_double_for.c -O3 --define OMP --define COMP -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1 -o life_double_for_omp
+OMP:    gcc life_hpc.c -O3 --define OMP --define COMP -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1 -o life_hpc_omp
 
-MPI:    mpicc life_double_for.c --define MPI --define COMP -o life_double_for_mpi
+MPI:    mpicc life_hpc.c --define MPI --define COMP -o life_hpc_mpi
 
-Hybrid: mpicc life_double_for.c --define MPI --define OMP --define COMP -fopenmp -o life_double_for_hybrid
+Hybrid: mpicc life_hpc.c --define MPI --define OMP --define COMP -fopenmp -o life_hpc_hybrid
 
 Compilation - INTEL
 ===================
 
-Serial: icc life_double_for.c -o life_double_for 
+Serial: icc life_hpc.c -o life_hpc 
 
-OMP:    icc life_double_for.c -O3 -D OMP -D COMP -fopenmp -vec-report -o life_double_for_omp
+OMP:    icc life_hpc.c -O3 -D OMP -D COMP -fopenmp -vec-report -o life_hpc_omp
 
-MPI:    mpicc life_double_for.c -D MPI -D COMP -o life_double_for_mpi
+MPI:    mpicc life_hpc.c -D MPI -D COMP -o life_hpc_mpi
 
-Hybrid: mpicc life_double_for.c -D MPI -D OMP -D COMP -fopenmp -o life_double_for_hybrid
+Hybrid: mpicc life_hpc.c -D MPI -D OMP -D COMP -fopenmp -o life_hpc_hybrid
 
 PLEASE NOTE: to compile on MIC use "-mmic" option.
 
 Compilation - PGI
 =================
 
-OMP: pgcc -mp=numa life_double_for.c -DOMP -DCOMP -fast -mp -Minfo -o life_double_for_omp
+OMP: pgcc -mp=numa life_hpc.c -DOMP -DCOMP -fast -mp -Minfo -o life_hpc_omp
 
-ACC: pgcc life_double_for.c -acc -DCOMP -ta=nvidia,time -Minfo=accel -lpgacc -o life_double_for_acc
+ACC: pgcc life_hpc.c -acc -DCOMP -ta=nvidia,time -Minfo=accel -lpgacc -o life_hpc_acc
+
+ACC-MPI: mpicc -O3 life_hpc.c -acc -DCOMP -DMPI -ta=nvidia -Minfo=accel -lpgacc -o life_hpc_acc_mpi
+
 
 ~ on nvidia device type 'nvidia-smi -l 1' to monitor GPUs activity
 
