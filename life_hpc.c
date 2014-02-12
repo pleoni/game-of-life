@@ -59,6 +59,7 @@ void init_MIC();
  char hostname[80];
  long datasize;
  int ncomp=1000;            //!< Computation load
+ double sum=0.0;
 
  int mygpu=0; //default GPU
 
@@ -204,7 +205,7 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
 #endif
 
 #if _OPENACC	
-	#pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(next_grid[nrows+2][ncols+2])
+	#pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(next_grid[nrows+2][ncols+2],sum)
 #endif
 	for(k=1; k<nsteps; k++)
 		{
@@ -386,10 +387,9 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 
  {
   int k,l,j,i;
-  double sum;
   #pragma omp parallel for private(i,j,k) reduction(+: sum)
 #if _OPENACC
-	#pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp])
+	#pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp],sum)
 	#pragma acc loop independent
 #endif
   for (i=rmin; i<=rmax; i++) {
@@ -402,7 +402,7 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 	        #pragma ivdep
 		#pragma vector aligned
 		#if _OPENACC
-			#pragma acc loop independent
+			#pragma acc loop reduction(+: sum)
 		#endif
 				
  		for (k=0; k < ncomp; k++) {
