@@ -120,8 +120,8 @@ int i,j;
 
 #ifdef COMP
 
-A = (double *) malloc ( sizeof(ptr) * ncomp ); 
-B = (double *) malloc ( sizeof(ptr) * ncomp );
+//A = (double *) malloc ( sizeof(ptr) * ncomp ); 
+//B = (double *) malloc ( sizeof(ptr) * ncomp );
 
 posix_memalign((void*)&(A), 64, ncomp*sizeof(double)); //memory alignment
 posix_memalign((void*)&(B), 64, ncomp*sizeof(double)); //memory alignment
@@ -138,7 +138,9 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
 	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 	prev_rank = (mpi_rank-1+mpi_size) % mpi_size;
-	next_rank = (mpi_rank+1) % mpi_size; 
+	next_rank = (mpi_rank+1) % mpi_size;
+
+	mygpu = mpi_rank%2;
 
 	sprintf(mpirank_name,"%d",mpi_rank);  /* convert integer to string */
 	sprintf(mpisize_name,"%d",mpi_size);  /* convert integer to string */ 
