@@ -120,14 +120,16 @@ int i,j;
 
 #ifdef COMP
 
-//A = (double *) malloc ( sizeof(ptr) * ncomp ); 
-//B = (double *) malloc ( sizeof(ptr) * ncomp );
+A = (double *) malloc ( sizeof(ptr) * ncomp ); 
+B = (double *) malloc ( sizeof(ptr) * ncomp );
 
-posix_memalign((void*)&(A), 64, ncomp*sizeof(double)); //memory alignment
-posix_memalign((void*)&(B), 64, ncomp*sizeof(double)); //memory alignment
+//posix_memalign((void*)&(A), 64, ncomp*sizeof(double)); //memory alignment
+//posix_memalign((void*)&(B), 64, ncomp*sizeof(double)); //memory alignment
 
 for (i=0; i< ncomp; i++) A[i]=rand_double();
 for (i=0; i< ncomp; i++) B[i]=rand_double();
+
+
 
 #endif //////// A[] and B[] allocation
 
@@ -207,7 +209,7 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
 #endif
 
 #if _OPENACC	
-	#pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(next_grid[nrows+2][ncols+2],sum)
+	#pragma acc data async(3) copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(next_grid[nrows+2][ncols+2],sum)
 #endif
 	for(k=1; k<nsteps; k++)
 		{
@@ -254,7 +256,10 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
   int i;
 
 // copy rows
-
+#if _OPENACC
+	#pragma acc kernels present(grid[nrows+2][ncols+2])
+	#pragma acc loop independent
+#endif
   for (i = cmin - 1; i <= cmax + 1; ++i) {
 
 	    grid[rmin-1][i] = grid[rmax][i];
@@ -265,7 +270,10 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
 
 
 // copy cols
-
+#if _OPENACC
+	#pragma acc kernels present(grid[nrows+2][ncols+2])
+	#pragma acc loop independent
+#endif
   for (i = rmin - 1; i <= rmax + 1; ++i) {
     grid[rmin-1][i] = grid[rmax][i];
     grid[rmax+1][i] = grid[rmin][i];
@@ -367,13 +375,13 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
  int i,j;
  #pragma omp parallel for private(i,j)
 #if _OPENACC
-	#pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2])
-	#pragma acc loop independent
+	#pragma acc kernels async(2) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2])
+	#pragma acc loop gang independent
 #endif
  for (i=rmin;i<=rmax;i++)
  {
 #if _OPENACC
-     #pragma acc loop independent
+     #pragma acc loop vector independent
 #endif
      for (j=cmin;j<=cmax;j++)
 	{
@@ -389,14 +397,15 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 
  {
   int k,l,j,i;
+  double neighbors=0.0;
   #pragma omp parallel for private(i,j,k) reduction(+: sum)
 #if _OPENACC
-	#pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp],sum)
-	#pragma acc loop independent
+	#pragma acc kernels async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp],sum)
+	#pragma acc loop gang independent
 #endif
   for (i=rmin; i<=rmax; i++) {
 #if _OPENACC
-	#pragma acc loop independent
+	#pragma acc loop vector independent
 #endif
 
        for (j=cmin; j<=cmax; j++) {
@@ -411,7 +420,7 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 			sum += A[k] + B[k];
 					}
 	#endif
-		double neighbors=0.0;
+		
 	       neighbors=grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
 	       if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
                   next_grid[i][j] = 0.0;
@@ -421,6 +430,7 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
                   next_grid[i][j] =  grid[i][j];
 		}
 	}
+
 }
 
 /////////////////////////// do_display ////////////////////////////////////
