@@ -1,6 +1,7 @@
 // Roberto Alfieri - University of Parma - INFN
+//Life
 
-char version[]="0.4";
+char version[]="0.1";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -10,13 +11,7 @@ int DEBUG=1;
 #include <sys/time.h>  //gettimeofday
 #include <string.h>    //strcpy
 
-
-#ifdef MIC
-#include "offload.h"
-#define REUSE length(0) alloc_if(0) free_if(0)
-#define ALLOC alloc_if(1) free_if(0)
-#define FREE alloc_if(0) free_if(1)
-#endif
+// #include "grid.hh" //grid class
 
 #ifdef MPI
 #include <mpi.h>
@@ -49,7 +44,8 @@ void clearscreen();
 void copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid);
 
 void init_GPU();
-void init_MIC();
+
+ int mygpu=0; //default GPU
 
  int nsteps=1000;       //!< Number of Steps 
  int ncols=80;          //!< Number of Columns 
@@ -61,7 +57,7 @@ void init_MIC();
  int ncomp=1000;            //!< Computation load
  double sum=0.0;
 
- int mygpu=0; //default GPU
+ 
 
  double ** grid;              
  double ** next_grid;
@@ -275,8 +271,8 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
 	#pragma acc loop independent
 #endif
   for (i = rmin - 1; i <= rmax + 1; ++i) {
-    grid[rmin-1][i] = grid[rmax][i];
-    grid[rmax+1][i] = grid[rmin][i];
+    grid[i][cmin-1] = grid[i][cmax];
+    grid[i][cmax+1] = grid[i][cmin];
 
 	}
 
@@ -542,29 +538,6 @@ if (system( "clear" )) system( "cls" );
 
 }
 
-////////////////////////////init_MIC//////////////////////
-
-#ifdef MIC
-void init_MIC() {
-
-	_Offload_status x;
-
-        OFFLOAD_STATUS_INIT(x);
-        #pragma offload target(mic:0) status(x) optional
-        {
-                if (_Offload_get_device_number() < 0) {
-                        printf("optional offload ran on CPU\n");
-                } else {
-                        printf("optional offload ran on MIC\n");
-                }
-        }
-	if (x.result == OFFLOAD_SUCCESS) {
-                printf("optional offload was successful\n");
-        } else {
-                printf("optional offload failed\n");
-        }
-}
-#endif
 
 //////////////////////// init_GPU ///////////////////////////////////////////
 
