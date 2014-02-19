@@ -1,0 +1,110 @@
+#include stuff
+
+/* global variables & constants */
+
+// typedef double cell;
+// typedef cell * grid_t;
+// typedef double * grid_t;
+
+typedef struct {
+	double * grid;
+	double * next_grid;
+} var_t;
+
+var_t * var; // array di variabili
+
+int N[3]; // lati della griglia
+int S[3]; // stride della griglia
+int D[3]; // lati (con stride) della griglia
+int DIM;  // numero di dimensioni spaziali
+int Nvar; // numero di variabili
+double prob=0.2;
+
+/* function declarations */
+
+int LinIdx(int i, int j, int k) {  //linear index
+	return i+S[0]+D[0]*(j+S[1])+(D[0]*D[1])*(k+S[2]);
+};
+
+//...
+
+/////// MAIN ///////
+
+int main() {
+	
+	parse_options();
+	
+	init_MPI();
+	init_omp();
+	init_GPU();
+	
+	init_rand();
+	
+	var = malloc(sizeof(var_t)*Nvar);
+	
+	for (int i=0; i<Nvar; i++) {
+		alloc_grid(&(var[i].grid));
+		alloc_grid(&(var[i].next_grid));
+		init_grid(&(var[i].grid));
+	}
+	
+
+	for (int k=0; k<nsteps; k++) {  // MAIN LOOP //
+
+		copy_borders_start();   // MPI
+
+		do_step_inner();
+
+		copy_borders_finish();  // MPI
+
+		do_step_borders();
+	
+		swap_grids(); // swap pointers? or copy memory?
+	
+		if (...) do_display();
+			
+	}
+	
+	finalize_all();
+	
+	return 0;
+
+}
+
+
+void init_MPI() {
+#ifdef MPI
+//...
+#endif
+} // eccetera
+
+void do_step_inner(int v) { // esempio
+
+	for (int v=0; v<Nvar; v++) {  // var
+		for (x=0; x<N[0]; x++) {
+			for (y=0; y<N[1]; y++) {
+				for (z=0; z<N[2]; z++) {
+					idx = LinIdx(x,y,z);
+					(var[v].next_grid)[idx] = (var[v].grid)[idx]; // questo non è Life, ovviamente
+				}
+			}
+		}
+	}
+	// nb: non e' detto che si facciano le stesse cose su tutte le variabili, anzi...
+
+}
+
+
+void init_grid(double ** griglia, double prob) {  // esempio
+
+	for (x=0; x<N[0]; x++) {
+		for (y=0; y<N[1]; y++) {
+			for (z=0; z<N[1]; z++) {
+				idx = LinIdx(x,y,z);
+				if (rand_double()<prob) (*griglia)[idx]=1.0;
+				else (*griglia)[idx]=0.0;
+			}
+		}
+	}
+
+}
