@@ -24,7 +24,8 @@ using namespace std;
 
 /////// GLOBAL VARIABLES ///////
 
-int        num_threads;
+int num_threads;
+int mygpu;
 
 #ifdef OPEN_MPI
 int        mpi_rank, mpi_size, tot_threads;
@@ -74,16 +75,20 @@ int main(int argc, char **argv)
     }
   }
 
+#if _OPENACC
+	init_GPU(); //GPU setup
+#endif
 
-	for(int k=1; k<nsteps; k++) {    //**** MAIN LOOP *****//
+//#pragma acc data copyin(Grid,neighbors) create(Next_Grid)
+for(int k=1; k<nsteps; k++) {    //**** MAIN LOOP *****//
 
-    if (DEBUG==2) do_display(Grid);
+		if (DEBUG==2) do_display(Grid);
 
 		do_step(Grid,Next_Grid);
 
 		swap_grids_pointers(Grid,Next_Grid);  // def. in grid.cc
 
-    copy_borders(Grid);
+    		copy_borders(Grid);
 
   }
 
@@ -156,10 +161,23 @@ void do_step(grid &Grid, grid &Next_Grid) {
   int k,j,i;
   double neighbors=0.0;
 
+	#if _OPENACC
+	#pragma acc kernels present(Grid,Next_Grid,neighbors)
+	#pragma acc loop independent
+	#endif
   for (int m=0; m<Grid.Nvars; m++) {  // variables
     //nota: esite un algoritmo molto piu' efficiente di questo per il game of life.
+	#if _OPENACC
+	#pragma acc loop independent
+	#endif
     for (i=0; i<Grid.N[0]; i++){
+	#if _OPENACC
+	#pragma acc loop independent
+	#endif
       for (j=0; j<Grid.N[1]; j++) {
+	#if _OPENACC
+	#pragma acc loop independent
+	#endif
         for (k=0; k<Grid.N[2]; k++) {
           // Domanda: quali vicini guardo? Se seguo lo stesso schema del game of life 2d, devo contare ben 26 vicini;
           // altrimenti posso evitare di andare in diagonale, e diventano solo 6, ma non si riduce al game of life se pongo dim=2;
@@ -216,6 +234,11 @@ void copy_borders(grid &Grid) {
   #pragma omp single
   {
   // TODO
+
+ #if _OPENACC
+ #pragma acc update host("new borders on Grid")
+ #endif
+
   }
 
 };
@@ -280,3 +303,33 @@ void grid_tests() {
   G1.dump();
 
 }
+
+//////////////////////// init_GPU ///////////////////////////////////////////
+
+#if _OPENACC
+void init_GPU() {
+
+	acc_init(acc_device_nvidia);
+	int myrealgpu, num_devices;
+	acc_device_t my_device_type;
+
+	//my_device_type = acc_device_cuda; //uncomment this if you are using CAPS
+	my_device_type = acc_device_nvidia; //comment this if you are using CAPS
+
+	acc_set_device_type(my_device_type) ;
+	
+	num_devices = acc_get_num_devices(my_device_type) ;
+	fprintf(stderr,"\nNumber of devices available: %d \n",num_devices);
+	
+	acc_set_device_num(mygpu,my_device_type);
+	fprintf(stderr,"Trying to use GPU: %d\n",mygpu);
+	
+	myrealgpu = acc_get_device_num(my_device_type);
+	fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
+
+	if(mygpu != myrealgpu) {
+		fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
+	exit(1);
+	}
+}
+#endif
