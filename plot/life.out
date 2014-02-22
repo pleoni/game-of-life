@@ -1,0 +1,469 @@
+#node044.eurora.cineca.it
+#node044.eurora.cineca.it
+#node060.eurora.cineca.it
+#node060.eurora.cineca.it
+#node061.eurora.cineca.it
+#node061.eurora.cineca.it
+#node062.eurora.cineca.it
+#node062.eurora.cineca.it
+
+# mpirun -np 8 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 17000 17000 10 1000 	 5.802041  90.194669 95.996710 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 17000 17000 10 100 	 5.796560  11.254144 17.050704 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 17000 17000 10 10 	 5.799479  6.539710 12.339189 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 0 -s 10 -d 0
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 17000 17000 10 0 	 5.920432  2.493309 8.413741 
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 1000 -s 10 -d 0
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 8000 8000 10 1000 	 1.319338  20.528678 21.848016 
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 8000 8000 10 100 	 1.367200  3.087375 4.454575 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 8000 8000 10 10 	 1.313134  2.019590 3.332724 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 8000 8000 10 0 	 1.375798  1.161647 2.537445 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 4000 4000 10 1000 	 0.361976  5.718735 6.080711 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 4000 4000 10 100 	 0.359373  1.354141 1.713514 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 10 -s 10 -d 0
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 4000 4000 10 10 	 0.359061  1.080305 1.439366 
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 4000 4000 10 0 	 0.364321  0.857736 1.222057 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 2000 2000 10 1000 	 0.107370  2.014242 2.121612 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 2000 2000 10 100 	 0.099257  0.892953 0.992210 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 2000 2000 10 10 	 0.116293  0.799536 0.915829 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 2000 2000 10 0 	 0.104113  0.782083 0.886196 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 1000 1000 10 1000 	 0.031314  1.016888 1.048202 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 1000 1000 10 100 	 0.027671  0.773675 0.801346 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 1000 1000 10 10 	 0.032323  0.779533 0.811856 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 8 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  8 1 1000 1000 10 0 	 0.028636  0.768717 0.797353 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-4	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-7	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node062-6	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node061-5	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 17000 17000 10 1000 	 6.171257  89.730880 95.902137 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 17000 17000 10 100 	 5.852022  11.141886 16.993908 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 17000 17000 10 10 	 5.750993  6.580981 12.331974 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 17000 17000 10 0 	 5.791287  2.381217 8.172504 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 8000 8000 10 1000 	 1.342385  20.457620 21.800005 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 8000 8000 10 100 	 1.379229  3.028884 4.408113 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 8000 8000 10 10 	 1.368772  2.058428 3.427200 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 8000 8000 10 0 	 1.327550  1.203633 2.531183 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 1000 -s 10 -d 0
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 4000 4000 10 1000 	 0.366626  5.166935 5.533561 
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 4000 4000 10 100 	 0.349628  1.331788 1.681416 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 4000 4000 10 10 	 0.362685  1.079298 1.441983 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 4000 4000 10 0 	 0.362373  0.817855 1.180228 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 2000 2000 10 1000 	 0.102766  2.049329 2.152095 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 2000 2000 10 100 	 0.115683  0.890736 1.006419 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 2000 2000 10 10 	 0.107461  0.832108 0.939569 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 2000 2000 10 0 	 0.105584  0.754069 0.859653 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 1000 1000 10 1000 	 0.032276  1.004759 1.037035 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 100 -s 10 -d 0
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 1000 1000 10 100 	 0.028626  0.762517 0.791143 
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 10 -s 10 -d 0
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 1000 1000 10 10 	 0.030235  0.757062 0.787297 
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 4 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  4 1 1000 1000 10 0 	 0.031231  0.765475 0.796706 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-2	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node060-3	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 1000 -s 10 -d 0
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 17000 17000 10 1000 	 5.985090  90.059316 96.044406 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 17000 17000 10 100 	 6.062461  11.161324 17.223785 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 17000 17000 10 10 	 5.941828  6.288568 12.230396 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 17000 17000 10 0 	 5.948058  2.393158 8.341216 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 8000 8000 10 1000 	 1.305694  18.337241 19.642935 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 8000 8000 10 100 	 1.345936  2.862818 4.208754 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 8000 8000 10 10 	 1.368246  2.058407 3.426653 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 8000 8000 10 0 	 1.298600  1.085840 2.384440 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 4000 4000 10 1000 	 0.452284  5.140515 5.592799 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 4000 4000 10 100 	 0.357613  1.321996 1.679609 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 4000 4000 10 10 	 0.365285  1.132231 1.497516 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 4000 4000 10 0 	 0.363619  0.824982 1.188601 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 2000 2000 10 1000 	 0.106630  1.969370 2.076000 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 2000 2000 10 100 	 0.109003  0.840875 0.949878 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 2000 2000 10 10 	 0.111302  0.770019 0.881321 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 2000 2000 10 0 	 0.107411  0.770925 0.878336 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 1000 1000 10 1000 	 0.032303  0.883758 0.916061 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 1000 1000 10 100 	 0.031335  0.746041 0.777376 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 1000 1000 10 10 	 0.033107  0.740317 0.773424 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 2 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  2 1 1000 1000 10 0 	 0.030988  0.720273 0.751261 
+#node044-1	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+# mpirun -np 1 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 17000 17000 10 1000 	 5.878998  89.621643 95.500641 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 17000 17000 10 100 	 5.837392  10.715115 16.552507 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 17000 17000 10 10 	 5.840404  5.945705 11.786109 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 17000 17000 10 0 	 5.844908  1.936739 7.781647 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 8000 8000 10 1000 	 1.371649  17.830710 19.202359 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 8000 8000 10 100 	 1.372458  2.549712 3.922170 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 8000 8000 10 10 	 1.379077  1.485453 2.864530 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 8000 8000 10 0 	 1.377023  0.602825 1.979848 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 4000 4000 10 1000 	 0.405666  4.651882 5.057548 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 4000 4000 10 100 	 0.405671  0.804608 1.210279 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 4000 4000 10 10 	 0.407022  0.561825 0.968847 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 4000 4000 10 0 	 0.406286  0.330904 0.737190 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 2000 2000 10 1000 	 0.111086  1.488217 1.599303 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 2000 2000 10 100 	 0.111468  0.365532 0.477000 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 2000 2000 10 10 	 0.111437  0.308983 0.420420 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 2000 2000 10 0 	 0.109181  0.257737 0.366918 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 1000 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 1000 1000 10 1000 	 0.033513  0.409046 0.442559 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 100 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 1000 1000 10 100 	 0.034019  0.270110 0.304129 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 10 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 1000 1000 10 10 	 0.036081  0.248930 0.285011 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 0 -s 10 -d 0
+#node044-0	   mpi_size omp_size ncols nrows nsteps ncomp 	 tb-ta tc-tb tc-ta
+		  1 1 1000 1000 10 0 	 0.034331  0.239285 0.273616 
