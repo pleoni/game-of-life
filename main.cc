@@ -25,7 +25,6 @@ using namespace std;
 /////// GLOBAL VARIABLES ///////
 
 int num_threads;
-int mygpu;
 bool do_display_enabled = false;
 
 #ifdef OPEN_MPI
@@ -364,13 +363,13 @@ void init_GPU() {
 	my_device_type = acc_device_nvidia; //comment this if you are using CAPS
 
 	acc_set_device_type(my_device_type) ;
-	
+
 	num_devices = acc_get_num_devices(my_device_type) ;
 	fprintf(stderr,"\nNumber of devices available: %d \n",num_devices);
-	
+
 	acc_set_device_num(mygpu,my_device_type);
 	fprintf(stderr,"Trying to use GPU: %d\n",mygpu);
-	
+
 	myrealgpu = acc_get_device_num(my_device_type);
 	fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
 
