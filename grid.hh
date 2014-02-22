@@ -33,7 +33,7 @@ private:
 
 public:
   double& operator()(int var,int idx)            {return vars[var][idx];}  // get element by linear index
-  double& operator()(int var,int i,int j)        {return vars[var][origin + i + STRIDEy * j ];}               // get element by coordinates
+  //double& operator()(int var,int i,int j)        {return vars[var][origin + i + STRIDEy * j ];}               // get element by coordinates
   double& operator()(int var,int i,int j, int k) {return vars[var][origin + i + STRIDEy * j + STRIDEz * k];}  // get element by coordinates
 
 /* contructors */
@@ -76,14 +76,14 @@ public:
     D[2] = ( ( ( N[2] -1 ) / V[2] ) + 1 ) * V[2] +2*S[2];
     // Setting total size
     SIZE = D[0]*D[1]*D[2];
-    origin = S[0]+ D[0] * S[1] + D[0]*D[1] *S[2] ;
+    origin = S[0] + D[0] * S[1] + D[0]*D[1] *S[2] ;
     STRIDEx = 1;
     STRIDEy = D[0];
     STRIDEz = D[0]*D[1];
     return *this;
   };
 
-  friend void swap_grids(grid G1, grid G2);
-  friend void swap_grids_pointers(grid G1, grid G2);
+  friend void swap_grids(grid &G1, grid &G2);
+  friend void swap_grids_pointers(grid &G1, grid &G2);
 
 };

@@ -100,9 +100,9 @@ grid::grid(const grid &g) { // copy constructor (by const reference)
 void grid::dump() {
   cout << "Dumping data about grid class" << endl ;
   cout << "dimension is: " << dim  << endl ;
-  cout << " # of points:" << N[0] <<  "," << N[1] << "," << N[2] << endl ;
-  cout << " stencil:    " << S[0] <<  "," << S[1] << "," << S[2] << endl ;
-  cout <<  "allocated:  " << D[0] <<  "," << D[1] << "," << D[2] << endl ;
+  cout << "# of points:" << N[0] <<  "," << N[1] << "," << N[2] << endl ;
+  cout << "stencil:    " << S[0] <<  "," << S[1] << "," << S[2] << endl ;
+  cout << "allocated:  " << D[0] <<  "," << D[1] << "," << D[2] << endl ;
   cout << "STRIDEs      " << STRIDEx <<  "," << STRIDEy <<  "," << STRIDEz << endl;
   cout << "SIZE   = " << SIZE   << endl ;
   cout << "Origin = " << origin << endl ;
@@ -110,12 +110,12 @@ void grid::dump() {
 
 int grid::DEBUG=0;
 
-void swap_grids(grid G1, grid G2) {
+void swap_grids(grid &G1, grid &G2) {
   // TODO
   printf("WARNING: swap_grids() is not implemented yet!");
 }
 
-void swap_grids_pointers(grid G1, grid G2) {
+void swap_grids_pointers(grid &G1, grid &G2) {
   // Watch out: this function only swaps the pointers to the data.
   // All other variables must be equal for this to make sense!
   double ** temp;
