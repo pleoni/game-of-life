@@ -232,6 +232,8 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
 
     if (DEBUG>0) fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tb-ta);
 
+    //if (DEBUG==0) fprintf(hostname,mpi_size,omp_size,); 
+
 
 #ifdef MPI
 
@@ -554,16 +556,16 @@ void init_GPU() {
 	acc_set_device_type(my_device_type) ;
 	
 	num_devices = acc_get_num_devices(my_device_type) ;
-	fprintf(stderr,"\nNumber of devices available: %d \n",num_devices);
+	if (DEBUG==1) fprintf(stderr,"\nNumber of devices available: %d \n",num_devices);
 	
 	acc_set_device_num(mygpu,my_device_type);
-	fprintf(stderr,"Trying to use GPU: %d\n",mygpu);
+	if (DEBUG==1) fprintf(stderr,"Trying to use GPU: %d\n",mygpu);
 	
 	myrealgpu = acc_get_device_num(my_device_type);
-	fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
+	if (DEBUG==1) fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
 
 	if(mygpu != myrealgpu) {
-		fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
+		if (DEBUG==1) fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
 	exit(1);
 	}
 }
