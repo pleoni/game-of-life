@@ -10,7 +10,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #else
-#define omp_get_num_threads() 1
+#define omp_get_num_threads() 0
 #define omp_get_thread_num()  0
 #endif
 
@@ -26,6 +26,7 @@ using namespace std;
 
 int num_threads;
 int mygpu;
+bool do_display_enabled = false;
 
 #ifdef OPEN_MPI
 int        mpi_rank, mpi_size, tot_threads;
@@ -35,7 +36,7 @@ MPI_Status status;
 #endif
 
 // user options
-int nrows, ncols, nsteps, mygpu, ncomp, nthreads, DEBUG=1;
+int nrows=20, ncols=40, nsteps=1000, mygpu, ncomp=0, nthreads=0, DEBUG=1;
 char version[] = "0.2";
 
 ////// FUNCTION DECLARATIONS //////
@@ -50,28 +51,45 @@ void finalize_all();
 void do_step(grid &Grid, grid &Next_Grid);
 void copy_borders(grid &Grid);
 void do_display(grid &Grid);
+void clearscreen();
 
-void grid_tests();
+void do_grid_tests();
 
 /////////// MAIN ///////////
 
 int main(int argc, char **argv)
 {
 
-  // grid_tests();
   parse_options(argc,argv);
-  init_MPI(argc,argv); // Initialize MPI communicato
+  init_MPI(argc,argv); // Initialize MPI communicator
   init_omp();  // Get thread count in current process
   check_processes(); // Show # of processes and locations
 
-  grid Grid( 10,10,10, 1,1,1, 3 );  /* The Grid */
+  if (mpi_rank==0)  printf("Starting with options: nrows=%d, ncols=%d, nsteps=%d, ncomp=%d, mygpu=%d, nthreads=%d, DEBUG=%d\n", nrows, ncols, nsteps, ncomp, mygpu, nthreads, DEBUG);
+
+  // do_grid_tests();
+
+  grid Grid( nrows,ncols,1, 1,1,1, 1 , 1.0,0.0);  /* The Grid */     //grid::grid(Nx,Ny,Nz,Sx,Sy,Sz,Nvars,initval1,initval2)
   grid Next_Grid(Grid);        /* Auxiliary grid */
 
-  if (DEBUG==1 && mpi_rank==0) {
+  if (DEBUG==1 && mpi_rank==0) { // debug: dump grids info
     #pragma omp single
     {
     Grid.dump();
     Next_Grid.dump();
+    }
+  }
+
+  if (DEBUG==2 && mpi_rank==0) { // check for do_display conditions
+    if ( Grid.Nvars > 1 ) {
+      printf("Cannot do_display: there's more than one variable.\n");
+    } else if ( Grid.N[2] > 1 ) {
+      printf("Cannot do_display: N[2] is larger than 1.\n");
+    } else if ( Grid.N[0] > 600 || Grid.N[1] > 300 ) {
+      printf("Cannot do_display: N[0] and/or N[1] are too large to fit the screen.\n");
+    } else {
+      do_display_enabled = true;
+      printf("do_display enabled\n");
     }
   }
 
@@ -80,15 +98,15 @@ int main(int argc, char **argv)
 #endif
 
 //#pragma acc data copyin(Grid,neighbors) create(Next_Grid)
-for(int k=1; k<nsteps; k++) {    //**** MAIN LOOP *****//
+  for(int k=1; k<nsteps; k++) {    //**** MAIN LOOP *****//
 
-		if (DEBUG==2) do_display(Grid);
+    if (do_display_enabled)  do_display(Grid);
 
-		do_step(Grid,Next_Grid);
+    do_step(Grid,Next_Grid);
 
-		swap_grids_pointers(Grid,Next_Grid);  // def. in grid.cc
+    swap_grids_pointers(Grid,Next_Grid);  // def. in grid.cc
 
-    		copy_borders(Grid);
+    copy_borders(Grid);
 
   }
 
@@ -119,6 +137,7 @@ void parse_options(int argc, char * argv[]) {
       default:   usage(argv); exit (1);
         }
     }
+
 }
 
 
@@ -158,7 +177,7 @@ int init_omp() {
 
 void do_step(grid &Grid, grid &Next_Grid) {
 
-  int k,j,i;
+  int i,j,k,di,dj,dk;
   double neighbors=0.0;
 
 	#if _OPENACC
@@ -170,7 +189,7 @@ void do_step(grid &Grid, grid &Next_Grid) {
 	#if _OPENACC
 	#pragma acc loop independent
 	#endif
-    for (i=0; i<Grid.N[0]; i++){
+    for (i=0; i<Grid.N[0]; i++) {
 	#if _OPENACC
 	#pragma acc loop independent
 	#endif
@@ -182,10 +201,18 @@ void do_step(grid &Grid, grid &Next_Grid) {
           // Domanda: quali vicini guardo? Se seguo lo stesso schema del game of life 2d, devo contare ben 26 vicini;
           // altrimenti posso evitare di andare in diagonale, e diventano solo 6, ma non si riduce al game of life se pongo dim=2;
           // esiste anche una via di mezzo, in cui ne conto 18, ma nemmeno questo si riduce al game of life in 2d...
-          neighbors = Grid(m,i+1,j,k) + Grid(m,i-1,j,k) + Grid(m,i,j+1,k) + Grid(m,i,j-1,k) + Grid(m,i,j,k+1) + Grid(m,i,j,k-1); // Per ora ne conto solo 6.
-          if ( neighbors > 3.0 || neighbors < 2.0 )
+          neighbors = -Grid(m,i,j,k);
+          for (di=0; di<3; di++) {    // Il metodo più inefficiente del mondo: faccio altri 3 cicli sulle coordinate,
+            for (dj=0; dj<3; dj++) {  // ma prima sottraggo la cella centrale, che ovviamente non voglio contare.
+              for (dk=0; dk<3; dk++) {
+                neighbors += Grid(m, i+di-1, j+dj-1, k+dk-1);
+              }
+            }
+          }
+          //printf("neighbors: %g ",neighbors);
+          if ( neighbors > 23.0 || neighbors < 2.0 )
             Next_Grid(m,i,j,k) = 0.0;
-          else if ( neighbors == 3.0 )
+          else if ( neighbors == 18.0 )
             Next_Grid(m,i,j,k) = 1.0;
           else
             Next_Grid(m,i,j,k) = Grid(m,i,j,k);
@@ -248,10 +275,30 @@ void do_display(grid &Grid) {
 
   #pragma omp single
   {
-  // TODO
+    int i,j;
+    int delay=500000;       /* usec sleep in do_display */
+
+    clearscreen();
+    for (j=0;j<Grid.N[1];j++) printf("-"); printf ("\n");  // colonne
+
+    for (j=-1;j<Grid.N[1]+1;j++) {  // colonne
+      for (i=-1;i<Grid.N[0]+1;i++) {  // righe
+        // printf("%g ",Grid(0,i,j,0)); // scommentare per stampare i valori delle celle
+        if (Grid(0,i,j,0)==0) printf(" ");
+        else printf ("x");
+      }
+      printf ("\n");
+    }
+     usleep(delay);
   }
 
 };
+
+
+void clearscreen() {
+  if (system( "clear" ))
+    system( "cls" );
+}
 
 
 void finalize_all() {
@@ -278,7 +325,7 @@ void usage(char * argv[])  {
 }
 
 
-void grid_tests() {
+void do_grid_tests() {
 
   grid GRID(3,2,1,1,1,1,1); // (Nx,Ny,Nz,Sx,Sy,Sz,Nvars)
   GRID.vars[0][GRID.idx_ijk(0,0,0)] = 1.0;
