@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -j oe
-#PBS -N life_accmpi_n8
+#PBS -N life_hpc_n8
 ###PBS -l select=1:ncpus=1:ngpus=1:mem=5gb
 #PBS -l select=8:ncpus=1:ngpus=1:mem=5gb
 ##PBS -q debug
