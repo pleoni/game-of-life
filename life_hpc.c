@@ -1,4 +1,4 @@
-// Roberto Alfieri, Marco Borrelli, Roberto De Pietri, Paolo Leoni
+// Roberto Alfieri, Marco Borelli, Roberto De Pietri, Paolo Leoni
 // University of Parma - INFN
 // Life_hpc
 
