@@ -1,7 +1,8 @@
-// Roberto Alfieri - University of Parma - INFN
-//Life
+// Roberto Alfieri, Marco Borrelli, Roberto De Pietri, Paolo Leoni
+// University of Parma - INFN
+// Life_hpc
 
-char version[]="0.1";
+char version[]="2014.02.23";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -91,7 +92,7 @@ int omp_rank=0, omp_size=1;
 int main(int argc, char ** argv) {
 
 
- double  ta, tb;
+ double  ta, tb, tc;
  struct timeval tempo ;
 
  options(argc, argv);         /* optarg management */ 
@@ -228,11 +229,15 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
   } // end openMP parallel
 
 
-    gettimeofday(&tempo,0); tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
+    gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
+
 
     if (DEBUG>0) fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tb-ta);
 
-    //if (DEBUG==0) fprintf(hostname,mpi_size,omp_size,); 
+if (mpi_rank==0)
+    if (DEBUG<2) fprintf(stderr,"%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
+else
+    if (DEBUG<2) fprintf(stderr,"#%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
 
 
 #ifdef MPI
