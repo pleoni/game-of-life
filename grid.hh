@@ -2,7 +2,7 @@ using namespace std;
 
 class grid {
 
-/* variables */
+/* variables: */
 
 public:
   int dim;              // Dimension of the grid (can be 1,2,3)
@@ -29,22 +29,21 @@ private:
   int STRIDEy;          // Next in direction y => + D[0]
   int STRIDEz;          // Next in direction z => + D[0]*D[1]
 
-/* operators */
+/* operators: */
 
 public:
   double& operator()(int var,int idx)            {return vars[var][idx];}  // get element by linear index
   //double& operator()(int var,int i,int j)        {return vars[var][origin + i + STRIDEy * j ];}               // get element by coordinates
   double& operator()(int var,int i,int j, int k) {return vars[var][origin + i + STRIDEy * j + STRIDEz * k];}  // get element by coordinates
 
-/* contructors */
+/* contructors: */
 
 public:
   grid(int NVARS);
   grid(int Nx,int Ny,int Nz,int Sx,int Sy,int Sz,int NVARS,double initval=1.0,double initval2=2.0);
-
   grid(const grid &grid2); // copy constr. (by const ref.)
 
-/* other functions */
+/* other functions: */
 
 public:
   // Function to read private member
@@ -82,6 +81,9 @@ public:
     STRIDEz = D[0]*D[1];
     return *this;
   };
+
+  void randomize(double prob=0.2);
+  void randomize(double prob, int var);
 
   friend void swap_grids(grid &G1, grid &G2);
   friend void swap_grids_pointers(grid &G1, grid &G2);

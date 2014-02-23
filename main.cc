@@ -42,6 +42,7 @@ char version[] = "0.2";
 
 void init_MPI(int argc, char **argv);
 int  init_omp();
+void init_rand();
 void check_processes();
 void parse_options(int argc, char * argv[]);
 void usage(char * argv[]);
@@ -50,6 +51,7 @@ void finalize_all();
 void do_step(grid &Grid, grid &Next_Grid);
 void copy_borders(grid &Grid);
 void do_display(grid &Grid);
+bool check_do_display_conditions(grid &Grid);
 void clearscreen();
 
 void do_grid_tests();
@@ -68,7 +70,8 @@ int main(int argc, char **argv)
 
   // do_grid_tests();
 
-  grid Grid( nrows,ncols,1, 1,1,1, 1 , 1.0,0.0);  /* The Grid */     //grid::grid(Nx,Ny,Nz,Sx,Sy,Sz,Nvars,initval1,initval2)
+  grid Grid( nrows,ncols,1, 1,1,1, 1 , 0.0,1.0);  /* The Grid */     //grid::grid(Nx,Ny,Nz,Sx,Sy,Sz,Nvars,initval1,initval2)
+  Grid.randomize();
   grid Next_Grid(Grid);        /* Auxiliary grid */
 
   if (DEBUG==1 && mpi_rank==0) { // debug: dump grids info
@@ -79,18 +82,7 @@ int main(int argc, char **argv)
     }
   }
 
-  if (DEBUG==2 && mpi_rank==0) { // check for do_display conditions
-    if ( Grid.Nvars > 1 ) {
-      printf("Cannot do_display: there's more than one variable.\n");
-    } else if ( Grid.N[2] > 1 ) {
-      printf("Cannot do_display: N[2] is larger than 1.\n");
-    } else if ( Grid.N[0] > 600 || Grid.N[1] > 300 ) {
-      printf("Cannot do_display: N[0] and/or N[1] are too large to fit the screen.\n");
-    } else {
-      do_display_enabled = true;
-      printf("do_display enabled\n");
-    }
-  }
+  do_display_enabled = check_do_display_conditions(Grid);
 
 #if _OPENACC
 	init_GPU(); //GPU setup
@@ -159,7 +151,7 @@ void init_MPI(int argc, char **argv) {
 }
 
 
-int init_omp() {
+int  init_omp() {
 
   #pragma omp parallel
   #pragma omp single
@@ -170,6 +162,16 @@ int init_omp() {
 #endif // _OPENMP
 
   return 0;
+
+}
+
+
+void init_rand() {
+
+    //time_t ltime;
+    //time(&ltime);
+    //srand((unsigned) ltime + 100*rank);
+    srand((unsigned)123);
 
 }
 
@@ -209,9 +211,9 @@ void do_step(grid &Grid, grid &Next_Grid) {
             }
           }
           //printf("neighbors: %g ",neighbors);
-          if ( neighbors > 23.0 || neighbors < 2.0 )
+          if ( neighbors > 3.0 || neighbors < 2.0 )
             Next_Grid(m,i,j,k) = 0.0;
-          else if ( neighbors == 18.0 )
+          else if ( neighbors == 3.0 )
             Next_Grid(m,i,j,k) = 1.0;
           else
             Next_Grid(m,i,j,k) = Grid(m,i,j,k);
@@ -280,8 +282,8 @@ void do_display(grid &Grid) {
     clearscreen();
     for (j=0;j<Grid.N[1];j++) printf("-"); printf ("\n");  // colonne
 
-    for (j=-1;j<Grid.N[1]+1;j++) {  // colonne
-      for (i=-1;i<Grid.N[0]+1;i++) {  // righe
+    for (i=-1;i<Grid.N[0]+1;i++) {  // righe
+      for (j=-1;j<Grid.N[1]+1;j++) {  // colonne
         // printf("%g ",Grid(0,i,j,0)); // scommentare per stampare i valori delle celle
         if (Grid(0,i,j,0)==0) printf(" ");
         else printf ("x");
@@ -292,6 +294,25 @@ void do_display(grid &Grid) {
   }
 
 };
+
+
+bool check_do_display_conditions(grid &Grid) {
+
+  if (DEBUG==2 && mpi_rank==0) { // check for do_display conditions
+    if ( Grid.Nvars > 1 ) {
+      printf("Cannot do_display: there's more than one variable.\n");
+    } else if ( Grid.N[2] > 1 ) {
+      printf("Cannot do_display: N[2] is larger than 1.\n");
+    } else if ( Grid.N[0] > 600 || Grid.N[1] > 300 ) {
+      printf("Cannot do_display: N[0] and/or N[1] are too large to fit the screen.\n");
+    } else {
+      return true;
+      printf("- do_display enabled -\n");
+    }
+  }
+  return false;
+
+}
 
 
 void clearscreen() {

@@ -44,7 +44,7 @@ grid::grid(int Nx,int Ny,int Nz,int Sx,int Sy,int Sz,int NVARS,double initval,do
     V[1] = 1;
     N[1] = Ny;
     S[1] = Sy;
-    // Setting x-direction
+    // Setting z-direction
     V[2] = 1;
     N[2] = Nz;
     S[2] = Sz;
@@ -83,7 +83,7 @@ grid::grid(const grid &g) { // copy constructor (by const reference)
   STRIDEx = g.STRIDEx;
   STRIDEy = g.STRIDEy;
   STRIDEz = g.STRIDEz;
-  origin = g.origin; // ???
+  origin = g.origin;
 
   vars = new double*[Nvars]; // allocate the array
   for(int m=0; m<Nvars; m++) {
@@ -108,7 +108,38 @@ void grid::dump() {
   cout << "Origin = " << origin << endl ;
 }
 
+
+void grid::randomize(double prob) {
+
+  for (int var=0; var<Nvars; var++)
+    this->randomize(prob,var);
+
+}
+
+void grid::randomize(double prob, int var) {
+
+  for(int i=0; i<N[0]; i++) {  // only set points in the "real" grid
+    for(int j=0; j<N[1]; j++) {
+      for(int k=0; k<N[2]; k++) {
+        if ( ( (double)rand()/(double)RAND_MAX) < prob )
+          (*this)(var,i,j,k) = 1.0;
+        else
+          (*this)(var,i,j,k) = 0.0;
+      }
+    }
+  }
+/*
+  for(int i=0; i<SIZE; i++) {   // this sets all points, including stencils and vectorization buffer
+    if ( ( (double)rand()/(double)RAND_MAX) < prob )
+      vars[var][i] = 1.0;
+    else
+      vars[var][i] = 0.0;
+      }
+*/
+}
+
 int grid::DEBUG=0;
+
 
 void swap_grids(grid &G1, grid &G2) {
   // TODO
