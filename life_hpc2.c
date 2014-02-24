@@ -1,8 +1,8 @@
 // Roberto Alfieri, Marco Borelli, Roberto De Pietri, Paolo Leoni
 // University of Parma - INFN
-// Life_hpc
+// life_hpc2.c 
 
-char version[]="2014.02.23";
+char version[]="2014.02.24";
 int DEBUG=1;
 
 #include <stdlib.h>
