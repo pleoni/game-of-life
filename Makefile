@@ -16,7 +16,7 @@ acc:
 	$(CC) $(PACKAGE).c -o $(PACKAGE)_acc.exe -acc -DCOMP -ta=nvidia,time -Minfo=accel -lpgacc
 
 omp: 
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_omp.exe -DCOMP -DOMP -mp=numa -fast -mp 
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_omp.exe -DCOMP -DOMP -mp=numa -fast -mp -Minfo=vec 
 
 serial: 
 	$(CC) $(PACKAGE).c -o $(PACKAGE)_serial.exe -DCOMP
