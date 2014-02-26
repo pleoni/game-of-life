@@ -394,11 +394,11 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 	for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
 	
 #if _OPENACC
-	#pragma acc loop gang independent
+	#pragma acc loop //gang independent
 #endif
   for (i=rmin; i<=rmax; i++) {
 #if _OPENACC
-	#pragma acc loop vector independent
+	#pragma acc loop //vector independent
 #endif
 
        for (j=cmin; j<=cmax; j++) {
