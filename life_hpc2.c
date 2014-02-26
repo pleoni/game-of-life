@@ -66,6 +66,8 @@ void init_GPU();
 
  double *A, *B; // array for computation
 
+ double *col_send_l, *col_send_r, *col_recv_l, *col_recv_r; //border buffers 
+
 // OMP
  int num_threads=1;  //default omp threads
  //MPI
@@ -132,7 +134,6 @@ for (i=0; i< ncomp; i++) B[i]=rand_double();
 
 
 //  Buffers for borders
-double *col_send_l, *col_send_r, *col_recv_l, *col_recv_r;
 col_send_l= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
 col_send_r= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
 col_recv_l= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
