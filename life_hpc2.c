@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c 
 
-char version[]="2014.02.24";
+char version[]="2014.02.26";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -227,7 +227,7 @@ col_recv_r= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
     gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
 
 
-    if (DEBUG>0) fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tb-ta);
+    if (DEBUG>0) fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tc-ta);
 
 if (mpi_rank==0)
     if (DEBUG<2) fprintf(stderr,"%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
@@ -387,8 +387,9 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
   #pragma omp parallel for private(i,j,k) reduction(+: sum)
 #if _OPENACC
 	#pragma acc parallel async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp],sum, col_send_l[nrows+2],col_send_r[nrows+2], col_recv_l[nrows+2], col_recv_r[nrows+2] )
+	{
 #endif
-    {
+
 	
 	for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
 	for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
@@ -427,8 +428,9 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 	for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
 	for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
 
-
+#if _OPENACC
 	 }
+#endif
 }
 
 /////////////////////////// do_display ////////////////////////////////////
