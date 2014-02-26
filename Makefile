@@ -1,6 +1,10 @@
 #******************************************************************************#
 #* Life_hpc	                                                              *#
 #******************************************************************************#
+
+#PLEASE NOTE: this software will be compiled only if pgcc is available:
+#module load pgi openmpi/1.6.5--pgi--14.1 
+
 PACKAGE = life_hpc2
 VERSION = 260214
 RELEASE = 1
