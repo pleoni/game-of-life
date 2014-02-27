@@ -21,7 +21,7 @@ all: accpgi omppgi ompgnu
 
 accpgi:
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_accpgi -acc  -ta=nvidia,time -Minfo=accel -lpgacc"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_accpgi -acc  -ta=nvidia -Minfo=accel -lpgacc"
 
 omppgi: 
 	bash -c "$(LOADPGI) ; \
