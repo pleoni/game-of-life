@@ -14,25 +14,25 @@ CC            = mpicc
 RM            = rm -fr
 MyO = -O3 
 
-all: pgiacc pgiomp gccomp
+all: accpgi omppgi ompgnu
 
-pgiacc: 
+accpgi:
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_pgiacc -acc  -ta=nvidia,time -Minfo=accel -lpgacc"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_accpgi -acc  -ta=nvidia,time -Minfo=accel -lpgacc"
 
-pgiomp: 
+omppgi: 
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_pgiomp  -mp=numa -fast -mp -Minfo=vec"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_omppgi  -mp=numa -fast -mp -Minfo=vec"
 
-pgiser: 
+serpgi: 
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_pgiser"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_serpgi"
 
-gccomp:
+ompgnu:
 	bash -c "$(UNLOADPGI) ;  $(LOADGNU) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_gccomp   -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompgnu   -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1"
 
 
-clean: ; $(RM) $(PACKAGE)_pgiacc  $(PACKAGE)_pgiomp  $(PACKAGE)_gccomp  
+clean: ; $(RM) $(PACKAGE)_accpgi  $(PACKAGE)_omppgi  $(PACKAGE)_ompgnu 
 
 .PHONY : clean
