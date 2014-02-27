@@ -417,7 +417,7 @@ void init_grid(int nrows, int rmin, int rmax, int ncols, double *** grid, double
     if (rmin==1) rmin=0;
     if (rmax==nrows) rmax=nrows+1;  
 
-    printf("init-grid %d-%d %d %f\n",  rmin,rmax,ncols,prob);
+    if (DEBUG == 1) printf("init-grid %d-%d %d %f\n",  rmin,rmax,ncols,prob);
 
     for (i=rmin; i<rmax+1;i++) 
   	{
