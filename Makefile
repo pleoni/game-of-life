@@ -1,30 +1,38 @@
 #******************************************************************************#
-#* Life_hpc	                                                              *#
+#* Life on EURORA                                                             *#
 #******************************************************************************#
 
-#PLEASE NOTE: this software will be compiled only if pgcc is available:
-#module load pgi openmpi/1.6.5--pgi--14.1 
-
 PACKAGE = life_hpc2
-VERSION = 260214
+VERSION = 270214
 RELEASE = 1
+LOADPGI = module load pgi openmpi/1.6.5--pgi--14.1
+UNLOADPGI = module unload pgi openmpi/1.6.5--pgi--14.1
+LOADGNU = module load gnu openmpi
+UNLOADGNU = module unload gnu openmpi
 
 CC            = mpicc
 RM            = rm -fr
 MyO = -O3 
 
-all: acc omp serial
+all: pgiacc pgiomp gccomp
+
+pgiacc: 
+	bash -c "$(LOADPGI) ; \
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_pgiacc -acc  -ta=nvidia,time -Minfo=accel -lpgacc"
+
+pgiomp: 
+	bash -c "$(LOADPGI) ; \
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_pgiomp  -mp=numa -fast -mp -Minfo=vec"
+
+pgiser: 
+	bash -c "$(LOADPGI) ; \
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_pgiser"
+
+gccomp:
+	bash -c "$(UNLOADPGI) ;  $(LOADGNU) ; \
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_gccomp   -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1"
 
 
-acc: 
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_acc.exe -acc -DCOMP -ta=nvidia,time -Minfo=accel -lpgacc
-
-omp: 
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_omp.exe -DCOMP -DOMP -mp=numa -fast -mp -Minfo=vec 
-
-serial: 
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_serial.exe -DCOMP
-
-clean: ; $(RM) *.exe
+clean: ; $(RM) $(PACKAGE)_pgiacc  $(PACKAGE)_pgiomp  $(PACKAGE)_gccomp  
 
 .PHONY : clean
