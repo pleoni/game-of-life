@@ -119,6 +119,8 @@ col_send_r= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
 col_recv_l= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
 col_recv_r= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
 
+
+
 	MPI_Init(&argc, &argv); 
 	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
@@ -170,7 +172,7 @@ col_recv_r= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
 #endif
 
 	
-	#pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2],col_send_l[nrows+2],col_send_r[nrows+2], col_recv_l[nrows+2], col_recv_r[nrows+2]) create(next_grid[nrows+2][ncols+2],sum)
+	#pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[nrows+2][ncols+2],sum)
 	for(k=1; k<nsteps; k++)
 		{
 		do_step(rmin,rmax,cmin,cmax, grid, next_grid);
@@ -213,8 +215,8 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
 
 // copy rows
 
-#pragma acc kernels present(grid[nrows+2][ncols+2])
-#pragma acc loop independent
+#pragma acc kernels present(grid[nrows+2][ncols+2],col_recv_r[0:nrows+2], col_recv_l[0:nrows+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2]) async(2)
+#pragma acc loop gang independent
 
   for (i = cmin - 1; i <= cmax + 1; ++i) {
 
@@ -225,8 +227,8 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
 
 if (mpi_size ==1) {
 // copy cols
-#pragma acc kernels present(grid[nrows+2][ncols+2])
-#pragma acc loop independent
+#pragma acc kernels present(grid[nrows+2][ncols+2],col_send_r[0:nrows+2], col_send_l[0:nrows+2],col_recv_r[0:nrows+2], col_recv_l[0:nrows+2]) async(2)
+#pragma acc loop gang independent
   for (i = rmin - 1; i <= rmax + 1; ++i) {
     grid[i][cmin-1] = grid[i][cmax];
     grid[i][cmax+1] = grid[i][cmin];
@@ -240,7 +242,7 @@ else
 
 int tag = 999;
 
-#pragma acc update host (col_send_r[nrows+2], col_send_l[nrows+2])
+#pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2]) async(2)
 
  MPI_Sendrecv(col_send_r, nrows + 2, MPI_DOUBLE, next_rank, tag, //send
               col_recv_l, nrows + 2, MPI_DOUBLE, prev_rank, tag, //recv
@@ -250,7 +252,7 @@ int tag = 999;
               col_recv_r, nrows + 2, MPI_DOUBLE, next_rank, tag, // recv 
               MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-#pragma acc update device (col_recv_r[nrows+2], col_recv_l[nrows+2])
+#pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2]) async(2)
 
 //free(col_send);
 //free(col_recv);
@@ -331,22 +333,23 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
  {
   int k,l,j,i;
   double neighbors=0.0;
-	#pragma acc parallel async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp],sum, col_send_l[nrows+2],col_send_r[nrows+2], col_recv_l[nrows+2], col_recv_r[nrows+2] )
+	#pragma acc kernels async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp],sum, col_send_l[0:nrows+2],col_send_r[0:nrows+2], col_recv_l[0:nrows+2], col_recv_r[0:nrows+2] )
 	{
 
-
+	#pragma acc loop vector independent
 	for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
+	#pragma acc loop vector independent
 	for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
 	
-  #pragma acc loop //gang independent
-  #pragma omp parallel for private(i,j,k) reduction(+: sum)
-  for (i=rmin; i<=rmax; i++) {
+  	#pragma acc loop gang independent
+  	#pragma omp parallel for private(i,j,k)
+  	for (i=rmin; i<=rmax; i++) {
 
-	#pragma acc loop //vector independent
+	#pragma acc loop vector independent
 	for (j=cmin; j<=cmax; j++) {
 	        #pragma ivdep
 		#pragma vector aligned
-		#pragma acc loop reduction(+: sum)
+		#pragma acc loop independent reduction(+: sum)
  		for (k=0; k < ncomp; k++) {
 			sum += A[k] + B[k];
 					}
@@ -360,8 +363,10 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
                   next_grid[i][j] =  grid[i][j];
 		}
 	}
-	// prerare buffers
+	// prepare buffers
+	#pragma acc loop vector independent
 	for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
+	#pragma acc loop vector independent
 	for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
 
 	 }
@@ -430,6 +435,7 @@ void init_grid(int nrows, int rmin, int rmax, int ncols, double *** grid, double
 //        for (j=0;j<ncols+2;j++) (*grid)[i][j]=0;       
 
 	}
+
 }
 
 
