@@ -344,14 +344,12 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 
 	#pragma acc loop //vector independent
 	for (j=cmin; j<=cmax; j++) {
-	#ifdef COMP
 	        #pragma ivdep
 		#pragma vector aligned
 		#pragma acc loop reduction(+: sum)
  		for (k=0; k < ncomp; k++) {
 			sum += A[k] + B[k];
 					}
-	#endif
 
 	       neighbors=grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
 	       if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
