@@ -1,6 +1,6 @@
 // Roberto Alfieri, Marco Borelli, Roberto De Pietri, Paolo Leoni
 // University of Parma - INFN
-// life_hpc2.c 
+// life_hpc2.c
 
 char version[]="2014.02.26";
 int DEBUG=1;
@@ -27,186 +27,169 @@ int DEBUG=1;
 	#include <openacc.h>
 #endif
 
-///////////////////////////
 
+//////////// functions ////////////
 
 void options(int argc, char * argv[]) ;
 void usage(char * argv[]);
-void copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid);
 void init_grid(int nrows, int rmin, int rmax, int ncols, double *** grid, double prob);
 void allocate_grid(int,  int , double *** grid);
 void randomize_grid(int, int , double ** grid, double base_life);
 double rand_double();
-void  do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
-void  do_display(int rmin, int rmax, int cmin, int cmax, double ** grid);
+void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
+void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid);
+void swap_grids();
 void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
 void random_initByTime(int rank) ;
 void clearscreen();
 void copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid);
+void log_initialize();
+void log_start_main_loop(double ta, double tb);
+void log_finalize(double ta, double tb, double tc);
 
 void init_GPU();
 
- int mygpu=0; //default GPU
+//////////// global vars ////////////
 
- int nsteps=1000;       //!< Number of Steps 
- int ncols=80;          //!< Number of Columns 
- int nrows=40;          //!< Number of rRows 
- double base_life=0.2;  //!< Base probability
- char datafile[80]=""; 
- char hostname[80];
- long datasize;
- int ncomp=1000;            //!< Computational load
- double sum=0.0;
+int mygpu=0; //default GPU
 
- 
+int nsteps=1000;       //!< Number of Steps
+int ncols=80;          //!< Number of Columns
+int nrows=40;          //!< Number of rRows
+double base_life=0.2;  //!< Base probability
+char datafile[80]="";
+char hostname[80];
+long datasize;
+int ncomp=1000;            //!< Computational load
+double sum=0.0;
 
- double ** grid;              
- double ** next_grid;
- double ** temp_grid;
+double ** grid;
+double ** next_grid;
+double ** temp_grid;
 
- double *A, *B; // array for computation
+double *A, *B; // array for computation
 
- double *col_send_l, *col_send_r, *col_recv_l, *col_recv_r; //border buffers 
+double *col_send_l, *col_send_r, *col_recv_l, *col_recv_r; //border buffers
 
- int num_threads=1;  //default omp threads
- char mpirank_name[4]; 
- char mpisize_name[4];
+////// omp + MPI //////
 
-/////////// MPI /////////
+int num_threads=1;  // default omp threads
+int omp_rank=0, omp_size=1; // actual omp threads
 
-int mpi_rank=0, mpi_size=0;  
-int prev_rank=0, next_rank=0;  
+int mpi_rank=0, mpi_size=0;
+int prev_rank=0, next_rank=0;
+//char mpirank_name[4];
+//char mpisize_name[4];
 
-MPI_Request request[4]; 
+MPI_Request request[4];
 MPI_Status  status[4];
 
-int omp_rank=0, omp_size=1; 
-
+/////////////////////////////////////////
+///////////////// main //////////////////
 /////////////////////////////////////////
 
 int main(int argc, char ** argv) {
 
+  double ta, tb, tc;
+  struct timeval tempo ;
 
- double  ta, tb, tc;
- struct timeval tempo ;
+  options(argc, argv);         /* optarg management */
 
- options(argc, argv);         /* optarg management */ 
+  gethostname(hostname, 80);  /* get hostname */
+  datasize=nrows*ncols*sizeof(double) ;     /* tot number of bytes */
 
-#ifdef _OPENMP
-omp_set_num_threads(num_threads);  // if is set (>0) keep this value else use t=1
-#endif /* OMP */
+  //double *ptr;
+  grid      = (double **)  malloc ( sizeof(double*) * (nrows+2)  );  // init grid
+  next_grid = (double **)  malloc ( sizeof(double*) * (nrows+2)  );  // init next_grid
 
+  /*  comp  */
+  posix_memalign((void*)&(A), 64, ncomp*sizeof(double)); //allocates aligned memory
+  posix_memalign((void*)&(B), 64, ncomp*sizeof(double)); //allocates aligned memory
 
-gethostname(hostname, 100);  /* get hostname */
-datasize=nrows*ncols*sizeof(double) ;     /* tot number of bytes */ 
+  int i;
 
-double *ptr;
+  for (i=0; i< ncomp; i++) A[i]=rand_double();
+  for (i=0; i< ncomp; i++) B[i]=rand_double();
 
-grid      = (double **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init grid
-next_grid = (double **)  malloc ( sizeof(ptr) * (nrows+2)  );  // init next_grid
+  /*  Buffers for borders  */
+  col_send_l = (double *)  malloc ( sizeof (double) * (nrows+2) ) ;
+  col_send_r = (double *)  malloc ( sizeof (double) * (nrows+2) ) ;
+  col_recv_l = (double *)  malloc ( sizeof (double) * (nrows+2) ) ;
+  col_recv_r = (double *)  malloc ( sizeof (double) * (nrows+2) ) ;
 
-int i,j;
+  /*  Init MPI  */
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+  prev_rank = (mpi_rank-1+mpi_size) % mpi_size;
+  next_rank = (mpi_rank+1) % mpi_size;
 
-posix_memalign((void*)&(A), 64, ncomp*sizeof(double)); //memory alignment
-posix_memalign((void*)&(B), 64, ncomp*sizeof(double)); //memory alignment
+  mygpu = mpi_rank % 2;
 
-for (i=0; i< ncomp; i++) A[i]=rand_double();
-for (i=0; i< ncomp; i++) B[i]=rand_double();
+  //sprintf(mpirank_name,"%d",mpi_rank);  /* convert integer to string */
+  //sprintf(mpisize_name,"%d",mpi_size);  /* convert integer to string */
 
-//  Buffers for borders
-col_send_l= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
-col_send_r= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
-col_recv_l= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
-col_recv_r= (double *)  malloc (  sizeof (double) * (nrows+2) ) ;
+  /*  Init OMP  */
+  #ifdef _OPENMP
+  omp_set_num_threads(num_threads);  // default is num_threads=1, unless the user provided a different value
+  #endif
+  omp_rank = omp_get_thread_num();
+  omp_size = omp_get_num_threads();
 
+  /* Initialize */
 
+  log_initialize();
 
-	MPI_Init(&argc, &argv); 
-	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-	prev_rank = (mpi_rank-1+mpi_size) % mpi_size;
-	next_rank = (mpi_rank+1) % mpi_size;
+  gettimeofday(&tempo,0);  ta=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA
 
-	mygpu = mpi_rank%2;
+  init_grid( nrows, 1, nrows+1, ncols, &grid, base_life);  // -- init grids --
+  init_grid( nrows, 1, nrows+1, ncols, &next_grid, 0);     // ----------------
 
-	sprintf(mpirank_name,"%d",mpi_rank);  /* convert integer to string */
-	sprintf(mpisize_name,"%d",mpi_size);  /* convert integer to string */ 
+  gettimeofday(&tempo,0);  tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
 
+  log_start_main_loop(ta,tb);
 
-	if (!strcmp(datafile,"")) sprintf(datafile,"life_%ld_%d_%d.dat",datasize,mpi_rank,mpi_size);  /* file name */	
+  int rmin=1;
+  int cmin=1;
 
-//initialize
+  int rmax=nrows;
+  int cmax=ncols;
 
-	if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", hostname, mpi_rank, mpi_size, num_threads, ncols,nrows,nsteps,datafile, DEBUG);
+  int k;
 
-	if (DEBUG==1) fprintf(stdout,"\nComp load: %d\n",ncomp);
- 
-	if (DEBUG==1) fprintf(stderr, "\n%s-%d ALLOCATE MEMORY  (%ld grid + %ld new_grid = %ld bytes ) \n", hostname,mpi_rank, datasize, datasize, datasize*2);
+  #if _OPENACC
+  init_GPU();
+  #endif
 
+  /* MAIN LOOP */
 
-	if (DEBUG==1) fprintf(stderr, "%s-%d  %d iterations - Start timer\n",hostname ,mpi_rank, nsteps);
-	if (DEBUG==1) fprintf(stderr,"%s-%d  START_MEM_ALLOC \n", hostname,mpi_rank); 		
-
-	gettimeofday(&tempo,0);  ta=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA
-
-	init_grid( nrows, 1, nrows+1, ncols, &grid, base_life);
-	init_grid( nrows, 1, nrows+1, ncols, &next_grid, 0);
-
-	gettimeofday(&tempo,0);  tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
-
-	if (DEBUG==1) fprintf (stderr, "%s-%d  END_MEM_ALLOC %f sec - START_DO_STEPS %d rows:%d-%d cols:%d-%d\n", hostname,mpi_rank, tb-ta, nsteps, 0,nrows+1,0,ncols+1);
-    
-        omp_rank=omp_get_thread_num();
-	omp_size=omp_get_num_threads();
-
-	int rmin=1;
-	int cmin=1;
-
-	int rmax=nrows;
-	int cmax=ncols;
-
-	int k;	
-
-#if _OPENACC
-	init_GPU();
-#endif
-
-	
 	#pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[nrows+2][ncols+2],sum)
-	for(k=1; k<nsteps; k++)
-		{
-		do_step(rmin,rmax,cmin,cmax, grid, next_grid);
-		if (DEBUG==2) do_display (1, nrows, 1, ncols,  grid);
-		
-		#pragma acc wait(1) 
-	        
-		// swap pointers
-                temp_grid=grid;
-                grid=next_grid; 
-                next_grid=temp_grid;
-		
-		copy_border(1, nrows, 1, ncols,  grid);
-		}
+  for(k=1; k<nsteps; k++) {
 
-	if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STOP\n", hostname,mpi_rank,omp_rank,omp_size); 	
+    do_step(rmin,rmax,cmin,cmax, grid, next_grid);
+    if (DEBUG==2) do_display (1, nrows, 1, ncols,  grid);
 
-    gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
+    #pragma acc wait(1)
 
-    if (DEBUG>0) fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tc-ta);
+    swap_grids();
 
-if (mpi_rank==0)
-    if (DEBUG==0) fprintf(stderr,"%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
-else
-    if (DEBUG==0) fprintf(stderr,"#%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
+    copy_border(1, nrows, 1, ncols,  grid);
 
-    MPI_Finalize();
+    }
 
-    return 0;
-}
+  gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
+
+  log_finalize(ta,tb,tc);
+
+  MPI_Finalize();
+
+  return 0;
+
+}  /* main */
 
 
 
-////////////////////////////// border //////////////////////////////
+////////////////////////// copy_border //////////////////////////
 
 
 void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
@@ -249,7 +232,7 @@ int tag = 999;
                MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
  MPI_Sendrecv(col_send_l, nrows + 2, MPI_DOUBLE, prev_rank, tag, // send
-              col_recv_r, nrows + 2, MPI_DOUBLE, next_rank, tag, // recv 
+              col_recv_r, nrows + 2, MPI_DOUBLE, next_rank, tag, // recv
               MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
 #pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2]) async(2)
@@ -281,7 +264,7 @@ void options(int argc, char * argv[]) {
         case 's':  nsteps      = strtol(optarg, NULL, 10);  break;
         case 'n':  ncomp       = strtol(optarg, NULL, 10);  break;
         case 't':  num_threads = strtol(optarg, NULL, 10);  break;
-        case 'd':  DEBUG       = strtol(optarg, NULL, 10);  break;			
+        case 'd':  DEBUG       = strtol(optarg, NULL, 10);  break;
         case 'h':  usage(argv); exit(1);
         case 'v':  printf("%s version %s\n",argv[0],version); exit(1);
         case '?':  usage(argv); exit(1);
@@ -294,22 +277,32 @@ void options(int argc, char * argv[]) {
 
 void usage(char * argv[])  {
 
-  printf ("\n%s [-c ncols] [-r nrows] [-t num_thr] [-s nsteps] [-G ngpu] [-d debug] [-v] [-h]",argv[0]); 
-  printf ("\n -d <0|1|2> : <no output | debug info (default) | display interactively> ");   
-  printf ("\n -s <int>   : steps  (step num. default=1000)"); 
-  printf ("\n -n <int>   : Computation load  (default=1000)"); 
+  printf ("\n%s [-c ncols] [-r nrows] [-t num_thr] [-s nsteps] [-G ngpu] [-d debug] [-v] [-h]",argv[0]);
+  printf ("\n -d <0|1|2> : <no output | debug info (default) | display interactively> ");
+  printf ("\n -s <int>   : steps  (step num. default=1000)");
+  printf ("\n -n <int>   : Computation load  (default=1000)");
   printf ("\n -G <int>   : GPU (default 0)");
-  printf ("\n -t <int>   : Threads num ( default = OMP_NUM_THREADS if set, otherwise = cores num"); 
-  printf ("\n -v   : version "); 
-  printf ("\n -h   : help "); 
-  printf ("\n"); 
+  printf ("\n -t <int>   : Threads num ( default = OMP_NUM_THREADS if set, otherwise = cores num");
+  printf ("\n -v   : version ");
+  printf ("\n -h   : help ");
+  printf ("\n");
+
+}
+
+
+void swap_grids() {
+
+  // swap pointers
+  temp_grid=grid;
+  grid=next_grid;
+  next_grid=temp_grid;
 
 }
 
 
 ////////////////////////// grid_copy //////////////////////////////////////
 
-void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid) 
+void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid)
 {
  int i,j;
  #pragma omp parallel for private(i,j)
@@ -320,7 +313,7 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
      #pragma acc loop vector independent
      for (j=cmin;j<=cmax;j++)
 	{
-         grid[i][j]=next_grid[i][j];  
+         grid[i][j]=next_grid[i][j];
 	}
  }
 
@@ -340,7 +333,7 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 	for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
 	#pragma acc loop vector independent
 	for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
-	
+
   	#pragma acc loop gang independent
   	#pragma omp parallel for private(i,j,k)
   	for (i=rmin; i<=rmax; i++) {
@@ -377,17 +370,17 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
 void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid)
 
 {
-  int i,j; 
+  int i,j;
   int delay=200000;       /* usec sleep in do_display */
 
 #pragma acc update host (grid[nrows+2][ncols+2])
-  
+
   clearscreen();
   for(i=cmin;i<=cmax;i++) printf("-"); printf ("\n");
-    for (i=rmin;i<=rmax;i++) { 
+    for (i=rmin;i<=rmax;i++) {
 		for (j=cmin;j<=cmax;j++)
-			if (grid[i][j]==0) printf(" "); 
-				else printf ("x"); 
+			if (grid[i][j]==0) printf(" ");
+				else printf ("x");
 		printf ("\n");
 	}
 
@@ -405,7 +398,7 @@ void allocate_grid(int nrows, int ncols, double *** grid){
     for (i=0; i<nrows+2;i++) {
         (*grid)[i] =  (double *)  malloc (  sizeof (double) * (ncols+2) ) ;
         for (j=0;j<ncols+2;j++) {
-            (*grid)[i][j]=0;    
+            (*grid)[i][j]=0;
         }
     }
 }
@@ -415,24 +408,24 @@ void allocate_grid(int nrows, int ncols, double *** grid){
 void init_grid(int nrows, int rmin, int rmax, int ncols, double *** grid, double prob){
 
 
-    int i,j; 
+    int i,j;
 
     random_initByTime(rand()%100);
 
     if (rmin==1) rmin=0;
-    if (rmax==nrows) rmax=nrows+1;  
+    if (rmax==nrows) rmax=nrows+1;
 
     if (DEBUG == 1) printf("init-grid %d-%d %d %f\n",  rmin,rmax,ncols,prob);
 
-    for (i=rmin; i<rmax+1;i++) 
+    for (i=rmin; i<rmax+1;i++)
   	{
 
 	(*grid)[i] =  (double *)  malloc ( sizeof (double) * (ncols+2) );
-	if (prob)  
-		for ( j=0;j<=ncols+1;j++)  
-			if ( rand_double() <prob ) (*grid)[i][j]=1; 
-				else 	 (*grid)[i][j]=0;	
-//        for (j=0;j<ncols+2;j++) (*grid)[i][j]=0;       
+	if (prob)
+		for ( j=0;j<=ncols+1;j++)
+			if ( rand_double() <prob ) (*grid)[i][j]=1;
+				else 	 (*grid)[i][j]=0;
+//        for (j=0;j<ncols+2;j++) (*grid)[i][j]=0;
 
 	}
 
@@ -443,12 +436,12 @@ void init_grid(int nrows, int rmin, int rmax, int ncols, double *** grid, double
 
 void randomize_grid(int nrows, int ncols, double ** grid, double prob){
 
-  int i,j; 
+  int i,j;
 
   random_initByTime(rand()%100) ;
   for ( i=1;i<=nrows;i++)
     for ( j=1;j<=ncols;j++)
-      if (rand_double() < prob) 
+      if (rand_double() < prob)
 	grid[i][j] = 1.0;
       else
 	grid[i][j] = 0.0;
@@ -485,7 +478,7 @@ if (system( "clear" )) system( "cls" );
 }
 
 
-//////////////////////// init_GPU ///////////////////////////////////////////
+//////////////////////// init_GPU //////////////////////////////////////
 
 #if _OPENACC
 void init_GPU() {
@@ -515,3 +508,37 @@ void init_GPU() {
 }
 #endif
 
+/////////////////// logging functions /////////////////////////
+
+void log_initialize() {
+
+  if (!strcmp(datafile,"")) sprintf(datafile,"life_%ld_%d_%d.dat",datasize,mpi_rank,mpi_size);  /* file name */
+
+  if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", hostname, mpi_rank, mpi_size, num_threads, ncols,nrows,nsteps,datafile, DEBUG);
+  if (DEBUG==1) fprintf(stdout,"\nComp load: %d\n",ncomp);
+  if (DEBUG==1) fprintf(stderr,"\n%s-%d ALLOCATE MEMORY  (%ld grid + %ld new_grid = %ld bytes ) \n", hostname,mpi_rank, datasize, datasize, datasize*2);
+  if (DEBUG==1) fprintf(stderr,"%s-%d  %d iterations - Start timer\n",hostname ,mpi_rank, nsteps);
+  if (DEBUG==1) fprintf(stderr,"%s-%d  START_MEM_ALLOC \n", hostname,mpi_rank);
+
+}
+
+void log_start_main_loop(double ta, double tb) {
+
+  if (DEBUG==1) fprintf (stderr, "%s-%d  END_MEM_ALLOC %f sec - START_DO_STEPS %d rows:%d-%d cols:%d-%d\n", hostname,mpi_rank, tb-ta, nsteps, 0,nrows+1,0,ncols+1);
+
+}
+
+void log_finalize(double ta, double tb, double tc) {
+
+  if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STOP\n", hostname,mpi_rank,omp_rank,omp_size);
+
+  if (DEBUG >0) fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tc-ta);
+
+  if (DEBUG==0) {
+    if (mpi_rank==0)
+      fprintf(stderr,"%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
+    else
+      fprintf(stderr,"#%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
+  }
+
+}
