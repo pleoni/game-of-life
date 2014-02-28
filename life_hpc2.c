@@ -39,7 +39,7 @@ double rand_double();
 void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
 void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid);
 void swap_grids();
-void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
+//void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
 void random_initByTime(int rank) ;
 void clearscreen();
 void copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid);
@@ -196,53 +196,50 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
 
   int i;
 
-// copy rows
-
-#pragma acc kernels present(grid[nrows+2][ncols+2],col_recv_r[0:nrows+2], col_recv_l[0:nrows+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2]) async(2)
-#pragma acc loop gang independent
-
+  // copy rows
+  #pragma acc kernels present(grid[nrows+2][ncols+2],col_recv_r[0:nrows+2], col_recv_l[0:nrows+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2]) async(2)
+  #pragma acc loop gang independent
   for (i = cmin - 1; i <= cmax + 1; ++i) {
-
-	    grid[rmin-1][i] = grid[rmax][i];
-	    grid[rmax+1][i] = grid[rmin][i];
+    grid[rmin-1][i] = grid[rmax][i];
+	  grid[rmax+1][i] = grid[rmin][i];
 	}
 
+  if (mpi_size ==1) {
 
-if (mpi_size ==1) {
-// copy cols
-#pragma acc kernels present(grid[nrows+2][ncols+2],col_send_r[0:nrows+2], col_send_l[0:nrows+2],col_recv_r[0:nrows+2], col_recv_l[0:nrows+2]) async(2)
-#pragma acc loop gang independent
-  for (i = rmin - 1; i <= rmax + 1; ++i) {
-    grid[i][cmin-1] = grid[i][cmax];
-    grid[i][cmax+1] = grid[i][cmin];
+    // copy cols
+    #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_r[0:nrows+2], col_send_l[0:nrows+2],col_recv_r[0:nrows+2], col_recv_l[0:nrows+2]) async(2)
+    #pragma acc loop gang independent
+      for (i = rmin - 1; i <= rmax + 1; ++i) {
+        grid[i][cmin-1] = grid[i][cmax];
+        grid[i][cmax+1] = grid[i][cmin];
+      }
 
-	}
-}
+  }
 
-else
+  else
 
-{
+  {
 
-int tag = 999;
+    int tag = 999;
 
-#pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2]) async(2)
+    #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2]) async(2)
 
- MPI_Sendrecv(col_send_r, nrows + 2, MPI_DOUBLE, next_rank, tag, //send
-              col_recv_l, nrows + 2, MPI_DOUBLE, prev_rank, tag, //recv
-               MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Sendrecv(col_send_r, nrows + 2, MPI_DOUBLE, next_rank, tag, //send
+                col_recv_l, nrows + 2, MPI_DOUBLE, prev_rank, tag, //recv
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
- MPI_Sendrecv(col_send_l, nrows + 2, MPI_DOUBLE, prev_rank, tag, // send
-              col_recv_r, nrows + 2, MPI_DOUBLE, next_rank, tag, // recv
-              MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Sendrecv(col_send_l, nrows + 2, MPI_DOUBLE, prev_rank, tag, // send
+                col_recv_r, nrows + 2, MPI_DOUBLE, next_rank, tag, // recv
+                MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-#pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2]) async(2)
+    #pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2]) async(2)
 
-//free(col_send);
-//free(col_recv);
+    //free(col_send);
+    //free(col_recv);
 
-MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 
-}
+  }
 
 /////////////////////////////////////////////////
 
@@ -256,21 +253,22 @@ MPI_Barrier(MPI_COMM_WORLD);
 void options(int argc, char * argv[]) {
 
   int i;
-   while ( (i = getopt(argc, argv, "W:vc:r:s:d:ht:f:C:n:G:")) != -1) {
-        switch (i) {
-        case 'c':  ncols       = strtol(optarg, NULL, 10);  break;
-	case 'G':  mygpu       = strtol(optarg, NULL, 10);  break;
-        case 'r':  nrows       = strtol(optarg, NULL, 10);  break;
-        case 's':  nsteps      = strtol(optarg, NULL, 10);  break;
-        case 'n':  ncomp       = strtol(optarg, NULL, 10);  break;
-        case 't':  num_threads = strtol(optarg, NULL, 10);  break;
-        case 'd':  DEBUG       = strtol(optarg, NULL, 10);  break;
-        case 'h':  usage(argv); exit(1);
-        case 'v':  printf("%s version %s\n",argv[0],version); exit(1);
-        case '?':  usage(argv); exit(1);
-        default:   usage(argv); exit (1);
-        }
+  while ( (i = getopt(argc, argv, "W:vc:r:s:d:ht:f:C:n:G:")) != -1) {
+    switch (i) {
+    case 'c':  ncols       = strtol(optarg, NULL, 10);  break;
+    case 'G':  mygpu       = strtol(optarg, NULL, 10);  break;
+    case 'r':  nrows       = strtol(optarg, NULL, 10);  break;
+    case 's':  nsteps      = strtol(optarg, NULL, 10);  break;
+    case 'n':  ncomp       = strtol(optarg, NULL, 10);  break;
+    case 't':  num_threads = strtol(optarg, NULL, 10);  break;
+    case 'd':  DEBUG       = strtol(optarg, NULL, 10);  break;
+    case 'h':  usage(argv); exit(1);
+    case 'v':  printf("%s version %s\n",argv[0],version); exit(1);
+    case '?':  usage(argv); exit(1);
+    default:   usage(argv); exit (1);
     }
+  }
+
 }
 
 ////////////////////////// usage //////////////////////////////////////
@@ -301,7 +299,7 @@ void swap_grids() {
 
 
 ////////////////////////// grid_copy //////////////////////////////////////
-
+/* // UNUSED
 void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid)
 {
  int i,j;
@@ -317,52 +315,52 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
 	}
  }
 
-}
+} */
 
 ////////////////////////////// do_step //////////////////////////////
 
-void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid)
+void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid) {
 
- {
   int k,l,j,i;
   double neighbors=0.0;
-	#pragma acc kernels async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp],sum, col_send_l[0:nrows+2],col_send_r[0:nrows+2], col_recv_l[0:nrows+2], col_recv_r[0:nrows+2] )
-	{
+  #pragma acc kernels async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp],sum, col_send_l[0:nrows+2],col_send_r[0:nrows+2], col_recv_l[0:nrows+2], col_recv_r[0:nrows+2] )
+  {
 
-	#pragma acc loop vector independent
-	for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
-	#pragma acc loop vector independent
-	for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
+    #pragma acc loop vector independent
+    for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
+    #pragma acc loop vector independent
+    for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
 
-  	#pragma acc loop gang independent
-  	#pragma omp parallel for private(i,j,k)
-  	for (i=rmin; i<=rmax; i++) {
+    #pragma acc loop gang independent
+    #pragma omp parallel for private(i,j,k)
+    for (i=rmin; i<=rmax; i++) {  // righe
+      #pragma acc loop vector independent
+      for (j=cmin; j<=cmax; j++) {  // colonne
+        #pragma ivdep
+        #pragma vector aligned
+        #pragma acc loop independent reduction(+: sum)
+        for (k=0; k < ncomp; k++)  // comp
+          sum += A[k] + B[k];
 
-	#pragma acc loop vector independent
-	for (j=cmin; j<=cmax; j++) {
-	        #pragma ivdep
-		#pragma vector aligned
-		#pragma acc loop independent reduction(+: sum)
- 		for (k=0; k < ncomp; k++) {
-			sum += A[k] + B[k];
-					}
+        // life
+        neighbors = grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
+        if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
+          next_grid[i][j] = 0.0;
+        else if ( neighbors == 3.0 )
+          next_grid[i][j] = 1.0;
+        else
+          next_grid[i][j] =  grid[i][j];
+      }
+    }
 
-	       neighbors=grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
-	       if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
-                  next_grid[i][j] = 0.0;
-	       else if ( neighbors == 3.0 )
-                  next_grid[i][j] = 1.0;
-               else
-                  next_grid[i][j] =  grid[i][j];
-		}
-	}
-	// prepare buffers
-	#pragma acc loop vector independent
-	for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
-	#pragma acc loop vector independent
-	for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
+    // prepare buffers
+    #pragma acc loop vector independent
+    for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
+    #pragma acc loop vector independent
+    for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
 
-	 }
+  }
+
 }
 
 /////////////////////////// do_display ////////////////////////////////////
@@ -373,18 +371,18 @@ void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid)
   int i,j;
   int delay=200000;       /* usec sleep in do_display */
 
-#pragma acc update host (grid[nrows+2][ncols+2])
+  #pragma acc update host (grid[nrows+2][ncols+2])
 
   clearscreen();
   for(i=cmin;i<=cmax;i++) printf("-"); printf ("\n");
-    for (i=rmin;i<=rmax;i++) {
-		for (j=cmin;j<=cmax;j++)
-			if (grid[i][j]==0) printf(" ");
-				else printf ("x");
-		printf ("\n");
-	}
+  for (i=rmin;i<=rmax;i++) {
+    for (j=cmin;j<=cmax;j++)
+      if (grid[i][j]==0) printf(" ");
+      else  printf ("x");
+    printf ("\n");
+  }
 
-   usleep(delay);
+  usleep(delay);
 }
 
 
@@ -408,26 +406,25 @@ void allocate_grid(int nrows, int ncols, double *** grid){
 void init_grid(int nrows, int rmin, int rmax, int ncols, double *** grid, double prob){
 
 
-    int i,j;
+  int i,j;
 
-    random_initByTime(rand()%100);
+  random_initByTime(rand()%100);
 
-    if (rmin==1) rmin=0;
-    if (rmax==nrows) rmax=nrows+1;
+  if (rmin==1) rmin=0;
+  if (rmax==nrows) rmax=nrows+1;
 
-    if (DEBUG == 1) printf("init-grid %d-%d %d %f\n",  rmin,rmax,ncols,prob);
+  if (DEBUG == 1) printf("init-grid %d-%d %d %f\n",  rmin,rmax,ncols,prob);
 
-    for (i=rmin; i<rmax+1;i++)
-  	{
+  for (i=rmin; i<rmax+1;i++) {
 
-	(*grid)[i] =  (double *)  malloc ( sizeof (double) * (ncols+2) );
-	if (prob)
-		for ( j=0;j<=ncols+1;j++)
-			if ( rand_double() <prob ) (*grid)[i][j]=1;
-				else 	 (*grid)[i][j]=0;
-//        for (j=0;j<ncols+2;j++) (*grid)[i][j]=0;
+    (*grid)[i] =  (double *)  malloc ( sizeof (double) * (ncols+2) );
+    if (prob)
+      for ( j=0;j<=ncols+1;j++)
+        if ( rand_double() <prob ) (*grid)[i][j]=1;
+        else  (*grid)[i][j]=0;
+  //  for (j=0;j<ncols+2;j++) (*grid)[i][j]=0;
 
-	}
+  }
 
 }
 
@@ -442,9 +439,9 @@ void randomize_grid(int nrows, int ncols, double ** grid, double prob){
   for ( i=1;i<=nrows;i++)
     for ( j=1;j<=ncols;j++)
       if (rand_double() < prob)
-	grid[i][j] = 1.0;
+        grid[i][j] = 1.0;
       else
-	grid[i][j] = 0.0;
+        grid[i][j] = 0.0;
 
 }
 
@@ -503,7 +500,7 @@ void init_GPU() {
 
 	if(mygpu != myrealgpu) {
 		if (DEBUG==1) fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
-	exit(1);
+		exit(1);
 	}
 }
 #endif
