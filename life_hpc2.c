@@ -27,17 +27,19 @@ int DEBUG=1;
 	#include <openacc.h>
 #endif
 
+#define MYSTRLEN 80
 
 //////////// functions ////////////
 
 void options(int argc, char * argv[]) ;
 void usage(char * argv[]);
-void init_grid(int nrows, int rmin, int rmax, int ncols, double *** grid, double prob);
-void allocate_grid(int,  int , double *** grid);
+void init_grid(int nrows, int rmin, int rmax, int ncols, double ** grid, double prob);
+//void allocate_grid(int,  int , double *** grid);
 void randomize_grid(int, int , double ** grid, double base_life);
 double rand_double();
 void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
 void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid);
+void save_data(char filename[MYSTRLEN]);
 void swap_grids();
 //void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
 void random_initByTime(int rank) ;
@@ -57,8 +59,8 @@ int nsteps=1000;       //!< Number of Steps
 int ncols=80;          //!< Number of Columns
 int nrows=40;          //!< Number of rRows
 double base_life=0.2;  //!< Base probability
-char datafile[80]="";
-char hostname[80];
+char datafile[MYSTRLEN]="";
+char hostname[MYSTRLEN];
 long datasize;
 int ncomp=1000;            //!< Computational load
 double sum=0.0;
@@ -95,8 +97,9 @@ int main(int argc, char ** argv) {
 
   options(argc, argv);         /* optarg management */
 
-  gethostname(hostname, 80);  /* get hostname */
-  datasize=nrows*ncols*sizeof(double) ;     /* tot number of bytes */
+  gethostname(hostname, MYSTRLEN);  /* get hostname */
+  datasize=nrows*ncols*sizeof(double) ;     /* tot number of bytes, excluding stencils */
+  //if (!strcmp(datafile,""))  sprintf(datafile,"life_%ld_%d_%d.dat",datasize,mpi_rank,mpi_size);  /* file name */
 
   //double *ptr;
   grid      = (double **)  malloc ( sizeof(double*) * (nrows+2)  );  // init grid
@@ -142,8 +145,8 @@ int main(int argc, char ** argv) {
 
   gettimeofday(&tempo,0);  ta=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA
 
-  init_grid( nrows, 1, nrows+1, ncols, &grid, base_life);  // -- init grids --
-  init_grid( nrows, 1, nrows+1, ncols, &next_grid, 0);     // ----------------
+  init_grid( nrows, 1, nrows+1, ncols, grid, base_life);  // -- init grids --
+  init_grid( nrows, 1, nrows+1, ncols, next_grid, 0);     // ----------------
 
   gettimeofday(&tempo,0);  tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
 
@@ -161,12 +164,12 @@ int main(int argc, char ** argv) {
   init_GPU();
   #endif
 
-  /* MAIN LOOP */
 
-	#pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[nrows+2][ncols+2],sum)
-  for(k=1; k<nsteps; k++) {
+  #pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[nrows+2][ncols+2],sum)
+  for(k=1; k<nsteps; k++) {    /* MAIN LOOP */
 
     do_step(rmin,rmax,cmin,cmax, grid, next_grid);
+
     if (DEBUG==2) do_display (1, nrows, 1, ncols,  grid);
 
     #pragma acc wait(1)
@@ -175,11 +178,15 @@ int main(int argc, char ** argv) {
 
     copy_border(1, nrows, 1, ncols,  grid);
 
-    }
+  }
+
 
   gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
 
   log_finalize(ta,tb,tc);
+
+  if (mpi_rank==0 && strcmp(datafile,""))
+    save_data(datafile);
 
   MPI_Finalize();
 
@@ -196,7 +203,7 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
 
   int i;
 
-  // copy rows
+  // copy rows (top-bottom)
   #pragma acc kernels present(grid[nrows+2][ncols+2],col_recv_r[0:nrows+2], col_recv_l[0:nrows+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2]) async(2)
   #pragma acc loop gang independent
   for (i = cmin - 1; i <= cmax + 1; ++i) {
@@ -204,9 +211,9 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
 	  grid[rmax+1][i] = grid[rmin][i];
 	}
 
-  if (mpi_size ==1) {
+  if (mpi_size==1) {
 
-    // copy cols
+    // copy cols (left-right)
     #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_r[0:nrows+2], col_send_l[0:nrows+2],col_recv_r[0:nrows+2], col_recv_l[0:nrows+2]) async(2)
     #pragma acc loop gang independent
       for (i = rmin - 1; i <= rmax + 1; ++i) {
@@ -262,6 +269,7 @@ void options(int argc, char * argv[]) {
     case 'n':  ncomp       = strtol(optarg, NULL, 10);  break;
     case 't':  num_threads = strtol(optarg, NULL, 10);  break;
     case 'd':  DEBUG       = strtol(optarg, NULL, 10);  break;
+    case 'f':  strncpy(datafile,optarg,MYSTRLEN-1); datafile[MYSTRLEN-1]='\0'; break;
     case 'h':  usage(argv); exit(1);
     case 'v':  printf("%s version %s\n",argv[0],version); exit(1);
     case '?':  usage(argv); exit(1);
@@ -281,6 +289,7 @@ void usage(char * argv[])  {
   printf ("\n -n <int>   : Computation load  (default=1000)");
   printf ("\n -G <int>   : GPU (default 0)");
   printf ("\n -t <int>   : Threads num ( default = OMP_NUM_THREADS if set, otherwise = cores num");
+  printf ("\n -f <filename> : output data file");
   printf ("\n -v   : version ");
   printf ("\n -h   : help ");
   printf ("\n");
@@ -388,6 +397,7 @@ void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid)
 
 /////////////////////////// allocate_grid ////////////////////////////////////
 
+/* // UNUSED
 void allocate_grid(int nrows, int ncols, double *** grid){
 
     int *a,i,j;
@@ -399,11 +409,11 @@ void allocate_grid(int nrows, int ncols, double *** grid){
             (*grid)[i][j]=0;
         }
     }
-}
+} */
 
 /////////////////////////// init_grid ////////////////////////////////////
 
-void init_grid(int nrows, int rmin, int rmax, int ncols, double *** grid, double prob){
+void init_grid(int nrows, int rmin, int rmax, int ncols, double ** grid, double prob){
 
 
   int i,j;
@@ -417,11 +427,11 @@ void init_grid(int nrows, int rmin, int rmax, int ncols, double *** grid, double
 
   for (i=rmin; i<rmax+1;i++) {
 
-    (*grid)[i] =  (double *)  malloc ( sizeof (double) * (ncols+2) );
+    grid[i] =  (double *)  malloc ( sizeof (double) * (ncols+2) );
     if (prob)
       for ( j=0;j<=ncols+1;j++)
-        if ( rand_double() <prob ) (*grid)[i][j]=1;
-        else  (*grid)[i][j]=0;
+        if ( rand_double() <prob ) grid[i][j]=1;
+        else  grid[i][j]=0;
   //  for (j=0;j<ncols+2;j++) (*grid)[i][j]=0;
 
   }
@@ -509,8 +519,6 @@ void init_GPU() {
 
 void log_initialize() {
 
-  if (!strcmp(datafile,"")) sprintf(datafile,"life_%ld_%d_%d.dat",datasize,mpi_rank,mpi_size);  /* file name */
-
   if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", hostname, mpi_rank, mpi_size, num_threads, ncols,nrows,nsteps,datafile, DEBUG);
   if (DEBUG==1) fprintf(stdout,"\nComp load: %d\n",ncomp);
   if (DEBUG==1) fprintf(stderr,"\n%s-%d ALLOCATE MEMORY  (%ld grid + %ld new_grid = %ld bytes ) \n", hostname,mpi_rank, datasize, datasize, datasize*2);
@@ -537,5 +545,37 @@ void log_finalize(double ta, double tb, double tc) {
     else
       fprintf(stderr,"#%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
   }
+
+}
+
+
+void save_data(char filename[MYSTRLEN]) {  // todo: make this function endian-independent
+
+  FILE * fp_outfile = fopen(filename,"w+");
+  if (fp_outfile==NULL) {
+    printf("Error: couldn't open outuput file %s.\n",filename);
+    return;
+  }
+
+  #pragma acc update host (grid[nrows+2][ncols+2])
+
+  int tot_rows = nrows+2;
+  int tot_cols = ncols+2;
+  int errors=0;
+
+  int i,j;
+  fwrite(&tot_rows,sizeof(tot_rows),1,fp_outfile);
+  fwrite(&tot_cols,sizeof(tot_cols),1,fp_outfile);
+  for (i=0;i<tot_rows;i++) {
+    if (fwrite(grid[i],sizeof(double),tot_cols,fp_outfile) != tot_cols)
+      errors++;
+  }
+
+  fclose(fp_outfile);
+
+  if (errors)
+    printf("There were %d errors saving the data to file: %s.\n",errors,filename);
+  else
+    printf("Data saved succesfully to file: %s.\n",filename);
 
 }
