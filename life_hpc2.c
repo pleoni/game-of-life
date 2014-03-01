@@ -180,6 +180,7 @@ int main(int argc, char ** argv) {
 
   }
 
+  // TODO: update grid on host
 
   gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
 
@@ -557,7 +558,7 @@ void save_data(char filename[MYSTRLEN]) {  // todo: make this function endian-in
     return;
   }
 
-  #pragma acc update host (grid[nrows+2][ncols+2])
+  //#pragma acc update host (grid[nrows+2][ncols+2])
 
   int tot_rows = nrows+2;
   int tot_cols = ncols+2;
