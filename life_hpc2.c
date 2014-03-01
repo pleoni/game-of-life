@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2014.02.26";
+char version[]="2014.03.01";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -552,7 +552,7 @@ void log_finalize(double ta, double tb, double tc) {
 
 void save_data(char filename[MYSTRLEN]) {  // todo: make this function endian-independent
 
-  FILE * fp_outfile = fopen(filename,"w+");
+  FILE * fp_outfile = fopen(filename,"wb");
   if (fp_outfile==NULL) {
     printf("Error: couldn't open outuput file %s.\n",filename);
     return;
