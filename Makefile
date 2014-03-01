@@ -26,7 +26,7 @@ MyO   = -O3
 all: accpgi omppgi ompgnu
 
 accpgi:
-	@bash -c "if type diff &> /dev/null; then $(LOADPGI); fi ; \
+	bash -c "$(LOADPGI) ; \
 	$(CC) $(PACKAGE).c -o $(PACKAGE)_accpgi -acc  -ta=nvidia -Minfo=accel -lpgacc"
 
 omppgi: 
