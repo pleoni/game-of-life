@@ -39,7 +39,8 @@ void randomize_grid(int, int , double ** grid, double base_life);
 double rand_double();
 void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
 void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid);
-void save_data(char filename[MYSTRLEN]);
+void save_data(char filename[]);
+void save_data_as_text(char filename[]);
 void swap_grids();
 //void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
 void random_initByTime(int rank) ;
@@ -186,8 +187,10 @@ int main(int argc, char ** argv) {
 
   log_finalize(ta,tb,tc);
 
-  if (mpi_rank==0 && strcmp(datafile,""))
+  if (mpi_rank==0 && strcmp(datafile,"")) {
     save_data(datafile);
+    save_data_as_text(strcat(datafile,".txt"));
+  }
 
   MPI_Finalize();
 
@@ -550,7 +553,7 @@ void log_finalize(double ta, double tb, double tc) {
 }
 
 
-void save_data(char filename[MYSTRLEN]) {  // todo: make this function endian-independent
+void save_data(char filename[]) {  // todo: make this function endian-independent
 
   FILE * fp_outfile = fopen(filename,"wb");
   if (fp_outfile==NULL) {
@@ -567,15 +570,47 @@ void save_data(char filename[MYSTRLEN]) {  // todo: make this function endian-in
   int i,j;
   fwrite(&tot_rows,sizeof(tot_rows),1,fp_outfile);
   fwrite(&tot_cols,sizeof(tot_cols),1,fp_outfile);
-  for (i=0;i<tot_rows;i++) {
-    if (fwrite(grid[i],sizeof(double),tot_cols,fp_outfile) != tot_cols)
+  for (i=0; i<tot_rows; i++) {
+    if ( fwrite(grid[i],sizeof(double),tot_cols,fp_outfile) != tot_cols )
       errors++;
   }
 
   fclose(fp_outfile);
 
   if (errors)
-    printf("There were %d errors saving the data to file: %s.\n",errors,filename);
+    printf("There were %d errors saving binary data to file: %s.\n",errors,filename);
+  else
+    printf("Data saved succesfully to file: %s.\n",filename);
+
+}
+
+void save_data_as_text(char filename[]) {
+
+  FILE * fp_outfile = fopen(filename,"w");
+  if (fp_outfile==NULL) {
+    printf("Error: couldn't open outuput file %s.\n",filename);
+    return;
+  }
+
+  int tot_rows = nrows+2;
+  int tot_cols = ncols+2;
+  int errors=0;
+
+  int i,j;
+  fprintf(fp_outfile,"tot_rows: %d, tot_cols: %d.\n\n",tot_rows,tot_cols);
+  for (i=0; i<tot_rows; i++) {
+    fprintf(fp_outfile,"[%d] ",i);
+    for (j=0; j<tot_cols; j++) {
+      if ( fprintf(fp_outfile,"%g ",grid[i][j]) < 0 )
+        errors++;
+    }
+    fprintf(fp_outfile,"\n");
+  }
+
+  fclose(fp_outfile);
+
+  if (errors)
+    printf("There were %d errors saving text data to file: %s.\n",errors,filename);
   else
     printf("Data saved succesfully to file: %s.\n",filename);
 
