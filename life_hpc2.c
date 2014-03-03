@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2014.03.01";
+char version[]="2014.03.03";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -161,26 +161,32 @@ int main(int argc, char ** argv) {
   int k;
 
   #if _OPENACC
-  init_GPU();
+  	init_GPU();
   #endif
 
 
-  #pragma acc data copyin(A[ncomp],B[ncomp],grid[nrows+2][ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[nrows+2][ncols+2],sum)
+  #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2],sum)
   for(k=1; k<nsteps; k++) {    /* MAIN LOOP */
-
+  
     do_step(rmin,rmax,cmin,cmax, grid, next_grid);
+
+    #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2], grid[0:nrows+2][0:ncols+2])
 
     if (DEBUG==2) do_display (1, nrows, 1, ncols,  grid);
 
-    #pragma acc wait(1)
+    #pragma acc wait
 
     swap_grids();
 
     copy_border(1, nrows, 1, ncols,  grid);
 
+    #pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2])
+
   }
 
   // TODO: update grid on host
+
+  //#pragma acc data copyout(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2])
 
   gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
 
@@ -205,7 +211,7 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
   int i;
 
   // copy rows (top-bottom)
-  #pragma acc kernels present(grid[nrows+2][ncols+2],col_recv_r[0:nrows+2], col_recv_l[0:nrows+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2]) async(2)
+  #pragma acc kernels present(grid[nrows+2][ncols+2])
   #pragma acc loop gang independent
   for (i = cmin - 1; i <= cmax + 1; ++i) {
     grid[rmin-1][i] = grid[rmax][i];
@@ -215,7 +221,7 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
   if (mpi_size==1) {
 
     // copy cols (left-right)
-    #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_r[0:nrows+2], col_send_l[0:nrows+2],col_recv_r[0:nrows+2], col_recv_l[0:nrows+2]) async(2)
+    #pragma acc kernels present(grid[nrows+2][ncols+2])
     #pragma acc loop gang independent
       for (i = rmin - 1; i <= rmax + 1; ++i) {
         grid[i][cmin-1] = grid[i][cmax];
@@ -230,8 +236,6 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
 
     int tag = 999;
 
-    #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2]) async(2)
-
     MPI_Sendrecv(col_send_r, nrows + 2, MPI_DOUBLE, next_rank, tag, //send
                 col_recv_l, nrows + 2, MPI_DOUBLE, prev_rank, tag, //recv
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -239,8 +243,6 @@ void  copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid) {
     MPI_Sendrecv(col_send_l, nrows + 2, MPI_DOUBLE, prev_rank, tag, // send
                 col_recv_r, nrows + 2, MPI_DOUBLE, next_rank, tag, // recv
                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-    #pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2]) async(2)
 
     //free(col_send);
     //free(col_recv);
@@ -329,18 +331,19 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
 
 ////////////////////////////// do_step //////////////////////////////
 
-void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid) {
-
+void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid)
+{
   int k,l,j,i;
   double neighbors=0.0;
-  #pragma acc kernels async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],A[ncomp],B[ncomp],sum, col_send_l[0:nrows+2],col_send_r[0:nrows+2], col_recv_l[0:nrows+2], col_recv_r[0:nrows+2] )
+  #pragma acc kernels present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
   {
-
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
-
+  }
+  #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
+  {
     #pragma acc loop gang independent
     #pragma omp parallel for private(i,j,k)
     for (i=rmin; i<=rmax; i++) {  // righe
@@ -349,10 +352,9 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
         #pragma ivdep
         #pragma vector aligned
         #pragma acc loop independent reduction(+: sum)
-        for (k=0; k < ncomp; k++)  // comp
-          sum += A[k] + B[k];
+        for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
-        // life
+        // LIFE
         neighbors = grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
         if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
           next_grid[i][j] = 0.0;
@@ -360,17 +362,18 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
           next_grid[i][j] = 1.0;
         else
           next_grid[i][j] =  grid[i][j];
+        }
       }
     }
 
     // prepare buffers
+    #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
+    {
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
-
-  }
-
+    }
 }
 
 /////////////////////////// do_display ////////////////////////////////////
@@ -380,8 +383,6 @@ void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid)
 {
   int i,j;
   int delay=200000;       /* usec sleep in do_display */
-
-  #pragma acc update host (grid[nrows+2][ncols+2])
 
   clearscreen();
   for(i=cmin;i<=cmax;i++) printf("-"); printf ("\n");
