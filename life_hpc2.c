@@ -171,9 +171,12 @@ int main(int argc, char ** argv) {
   
     do_step(rmin,rmax,cmin,cmax, grid, next_grid);
 
-    #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2], grid[0:nrows+2][0:ncols+2])
+    #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2])
 
-    if (DEBUG==2) do_display (1, nrows, 1, ncols,  grid);
+    if (DEBUG==2){ 
+        #pragma acc update host (grid[0:nrows+2][0:ncols+2])
+	do_display (1, nrows, 1, ncols,  grid);
+	}
 
     #pragma acc wait
 
