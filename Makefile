@@ -33,19 +33,19 @@ mic:        ompmic
 
 accpgi:
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_accpgi -acc  -ta=nvidia -Minfo=accel -lpgacc"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_accpgi -acc -ta=nvidia -Minfo=accel -lpgacc"
 
 omppgi: 
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_omppgi  -mp=numa -fast -mp -Minfo=vec"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_omppgi $(MyO) -mp=numa -fast -mp -Minfo=vec"
 
 serpgi: 
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_serpgi"
+	$(CC) $(PACKAGE).c $(MyO) -o $(PACKAGE)_serpgi"
 
 ompgnu:
 	bash -c "$(UNLOADPGI) ;  $(LOADGNU) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompgnu   -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompgnu $(MyO) -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1"
 
 sergnu: 
 	bash -c "$(UNLOADPGI) ;  $(LOADGNU) ; \
