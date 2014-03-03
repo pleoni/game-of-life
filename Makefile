@@ -55,9 +55,7 @@ ompmic:
 	bash -c "$(UNLOADGNU) ;  $(LOADINTEL) ; \
 	source $(INTEL_HOME)/bin/compilervars.sh intel64 ; \
 	export I_MPI_MIC=enable ; \
-	export LD_LIBRARY_PATH= ; \
-	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):/eurora/prod/compilers/intel/cs-xe-2013/binary/composer_xe_2013/lib/mic ; \
-	$(CC) $(MyO) $(PACKAGE).c -mmic -fopenmp -vec-report1 -o $(PACKAGE)_omp.mic"
+	$(CC) $(MyO) $(PACKAGE).c -mmic -fopenmp -vec-report2 -o $(PACKAGE)_omp.mic"
 
 clean: ; $(RM) $(PACKAGE)_accpgi  $(PACKAGE)_omppgi  $(PACKAGE)_ompgnu $(PACKAGE)_omp.mic $(TESTFILE)
 
