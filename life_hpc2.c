@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2014.03.03";
+char version[]="2014.03.04";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -165,6 +165,7 @@ int main(int argc, char ** argv) {
   	init_GPU();
   #endif
 
+  #pragma warning disable 161 //disable warnings in icc compilation (due to lack of openacc support)
 
   #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2],sum)
   for(k=1; k<nsteps; k++) {    /* MAIN LOOP */
