@@ -1,4 +1,4 @@
-# ~Game of Life~
+## Game of Life
 
 Purpose of this project is to make a useful performance measurement tool based on the "Game of Life" (http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life), suitable on HPC systems.
 
@@ -7,7 +7,7 @@ K20 GPGPUs are programmed via OpenACC directives, which are currently best suppo
 
 On the Eurora cluster, the `module` command is used to load the appropriate environment and libraries for the chosen compiler, and this is what the Makefile script does prior to compilation and execution. If your system doesn't support such command, or if you want to use other compilers or libraries than the default ones, you can adapt the Makefile as needed. If you have manually setup the correct environment, you can ignore any "module: command not found" error. Please note that an MPI implementation is required.
 
-## Compilation
+### Compilation
 
 To compile, type `make <target>`, where &lt;target&gt; is one of the following:
 
@@ -25,7 +25,7 @@ Other compilation targets are available which generate multiple binaries in one 
 * `mic`: compile with the Intel C compiler, in all supported acceleration modes
 * `all`: compile with all available compilers, in all supported acceleration modes
 
-## Running
+### Running
 
 If you followed the above step, you should have (at least) an executable named `life_hpc2_<target>`. Simply run it in one of these two ways:
 
@@ -34,16 +34,16 @@ If you followed the above step, you should have (at least) an executable named `
 
 where N is the number of MPI processes you want to launch, and the `<PARAMETERS>` are:
 
-> `-r#` - number of rows
-> `-c#` - number of columns
-> `-s#` - number of steps of the simulation
-> `-n#` - number of artificial extra computations per cell, per step
-> `-t#` - number of OpenMP threads for each MPI process (when compiled with OpenMP support)
-> `-G#` - ID number of the GPU to which to offload the calculations (when compiled with openACC support)
-> `-d#` - debug mode (0 = concise output, 1 = verbose output (default), 2 = display interactively)
-> `-f<NAME>`: output file (mainly for debugging)
+* `-r#` - number of rows
+* `-c#` - number of columns
+* `-s#` - number of steps of the simulation
+* `-n#` - number of artificial extra computations per cell, per step
+* `-t#` - number of OpenMP threads for each MPI process (when compiled with OpenMP support)
+* `-G#` - ID number of the GPU to which to offload the calculations (when compiled with openACC support)
+* `-d#` - debug mode (0 = concise output, 1 = verbose output (default), 2 = display interactively)
+* `-f<NAME>`: output file (mainly for debugging)
 
-## Testing
+### Testing
 
 You can test for code correctness by typing:
 
