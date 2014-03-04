@@ -9,7 +9,7 @@ On the Eurora cluster, the `module` command is used to load the appropriate envi
 
 ### Compilation
 
-To compile, type `make <target>`, where &lt;target&gt; is one of the following:
+To compile, type `make <target>`, where `<target>` is one of the following:
 
 * `accpgi`: compile with the Portland C compiler, enabling OpenACC directives
 * `omppgi`: compile with the Portland C compiler, enabling OpenMP directives
@@ -41,7 +41,7 @@ where N is the number of MPI processes you want to launch, and the `<PARAMETERS>
 * `-t#` - number of OpenMP threads for each MPI process (when compiled with OpenMP support)
 * `-G#` - ID number of the GPU to which to offload the calculations (when compiled with openACC support)
 * `-d#` - debug mode (0 = concise output, 1 = verbose output (default), 2 = display interactively)
-* `-f<NAME>`: output file (mainly for debugging)
+* `-f<NAME>` - output file (mainly for debugging)
 
 ### Testing
 
