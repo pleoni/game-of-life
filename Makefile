@@ -57,6 +57,13 @@ ompmic:
 	export I_MPI_MIC=enable ; \
 	$(CC) $(MyO) $(PACKAGE).c -mmic -fopenmp -vec-report2 -o $(PACKAGE)_omp.mic"
 
+acckep:
+	pgcc -Mmpi=mpich -acc -ta=nvidia -Minfo=accel -lpgacc $(PACKAGE).c -o $(PACKAGE)_acckep
+
+ompkep:
+	pgcc -Mmpi=mpich $(MyO) -mp=numa -fast -mp -Minfo=vec $(PACKAGE).c -o $(PACKAGE)_ompkep
+
+
 clean: ; $(RM) $(PACKAGE)_accpgi  $(PACKAGE)_omppgi  $(PACKAGE)_ompgnu $(PACKAGE)_omp.mic $(TESTFILE)
 
 .PHONY : clean all pgi gnu mic
