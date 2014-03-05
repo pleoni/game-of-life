@@ -65,9 +65,10 @@ char hostname[MYSTRLEN];
 long datasize;
 int ncomp=1000;            //!< Computational load
 double sum=0.0;
-int nrows_tot, ncols_tot,     // total n. of rows/cols
-    rmin, rmax, cmin, cmax,   // boundary of the "real" grid
-	rmin_int, rmax_int, cmin_int, cmax_int;  // boundary of the innermost part of the grid
+int nrows_tot, ncols_tot;     // total n. of rows/cols
+int bordersize = 1;           // larghezza (trasversale) di tutti i bordi e i buffer
+int rmin, rmax, cmin, cmax,   // boundary of the "real" grid
+    rmin_int, rmax_int, cmin_int, cmax_int;  // boundary of the innermost part of the grid
 
 double ** grid;
 double ** next_grid;
@@ -156,17 +157,17 @@ int main(int argc, char ** argv) {
 
   log_start_main_loop(ta,tb);
 
-  rmin = 1;
-  cmin = 1;
-  rmax = nrows;
-  cmax = ncols;
-  rmin_int = rmin; // perche' dividiamo il dominio solo lungo l'asse orizzontale
-  rmax_int = rmax; // "
-  cmin_int = cmin+1;
-  cmax_int = cmax-1;
+  rmin = 0+bordersize;  // confini della griglia "reale"
+  cmin = 0+bordersize;
+  rmax = nrows+bordersize-1;
+  cmax = ncols+bordersize-1;
+  rmin_int = rmin+bordersize;  // confini della sezione interna della griglia "reale"
+  rmax_int = rmax-bordersize;
+  cmin_int = cmin+bordersize;
+  cmax_int = cmax-bordersize;
   
-  nrows_tot = nrows+2;
-  ncols_tot = ncols+2;
+  nrows_tot = nrows+2*bordersize;  // numero totale di righe e colonne in memoria
+  ncols_tot = ncols+2*bordersize;
   
   int k;
 
@@ -181,7 +182,7 @@ int main(int argc, char ** argv) {
   
     do_step(/*rmin,rmax,cmin,cmax,*/ grid, next_grid);
     // do_step_1();
-	// do_step_2();
+    // do_step_2();
 
     #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2])
 
@@ -356,6 +357,7 @@ void do_step(/*int rmin, int rmax, int cmin, int cmax,*/ double ** grid, double 
   
   // ReceiveBuffer to ExtBorders
   #pragma acc kernels present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
+  //#pragma acc kernels present(grid[0:nrows_tot][0:ncols_tot],col_recv_l[0:nrows_tot],col_recv_r[0:nrows_tot],sum,A[0:ncomp],B[0:ncomp])
   {
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
@@ -366,13 +368,12 @@ void do_step(/*int rmin, int rmax, int cmin, int cmax,*/ double ** grid, double 
   // Compute IntBorders
   #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
   {
+  
     #pragma acc loop gang independent
     #pragma omp parallel for private(i,j,k)
     for (i=rmin; i<=rmax; i++) {  // righe
-	
-      //#pragma acc loop vector independent
-      j=cmin; // bordo sinistro
-	  {
+      #pragma acc loop vector independent
+      for (j=cmin; j<cmin_int; j++) { // bordo sinistro
         #pragma ivdep
         #pragma vector aligned
         #pragma acc loop independent reduction(+: sum)
@@ -387,9 +388,13 @@ void do_step(/*int rmin, int rmax, int cmin, int cmax,*/ double ** grid, double 
         else
           next_grid[i][j] =  grid[i][j];
       }
- 
-      j=cmax; // bordo destro
-	  {
+    }
+
+    #pragma acc loop gang independent
+    #pragma omp parallel for private(i,j,k)
+    for (i=rmin; i<=rmax; i++) {  // righe
+      #pragma acc loop vector independent
+      for (j=cmax; j>cmax_int; j--) { // bordo destro
         #pragma ivdep
         #pragma vector aligned
         #pragma acc loop independent reduction(+: sum)
@@ -404,13 +409,50 @@ void do_step(/*int rmin, int rmax, int cmin, int cmax,*/ double ** grid, double 
         else
           next_grid[i][j] =  grid[i][j];
       }
-    
-	}
-  }
+    }
 
+    #pragma acc loop gang independent
+    #pragma omp parallel for private(i,j,k)
+    for (j=cmin_int; j<=cmax_int; j++) {  // colonne
+      #pragma acc loop vector independent    
+      for (i=rmin; i<rmin_int; i++) {  // bordo superiore
+        #pragma ivdep
+        #pragma vector aligned
+        #pragma acc loop independent reduction(+: sum)
+        for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
+
+        // LIFE
+        neighbors = grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
+        if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
+          next_grid[i][j] = 0.0;
+        else if ( neighbors == 3.0 )
+          next_grid[i][j] = 1.0;
+        else
+          next_grid[i][j] =  grid[i][j];
+      }
+      #pragma acc loop vector independent
+      for (i=rmax; i>rmax_int; i--) {  // bordo inferiore
+        #pragma ivdep
+        #pragma vector aligned
+        #pragma acc loop independent reduction(+: sum)
+        for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
+
+        // LIFE
+        neighbors = grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
+        if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
+          next_grid[i][j] = 0.0;
+        else if ( neighbors == 3.0 )
+          next_grid[i][j] = 1.0;
+        else
+          next_grid[i][j] =  grid[i][j];
+      }
+    }
+  }  // end Compute IntBorders
+  
   // Compute Internals
   #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
   {
+
     #pragma acc loop gang independent
     #pragma omp parallel for private(i,j,k)
     for (i=rmin_int; i<=rmax_int; i++) {  // righe
@@ -433,7 +475,7 @@ void do_step(/*int rmin, int rmax, int cmin, int cmax,*/ double ** grid, double 
 
       }
     }
-  }
+  }  // end Compute Internals
 
   // IntBorders to SendBuffer
   #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
