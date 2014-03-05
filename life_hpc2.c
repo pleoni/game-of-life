@@ -37,7 +37,7 @@ void init_grid(int nrows, int rmin, int rmax, int ncols, double ** grid, double 
 //void allocate_grid(int,  int , double *** grid);
 void randomize_grid(int, int , double ** grid, double base_life);
 double rand_double();
-void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid);
+void do_step(/*int rmin, int rmax, int cmin, int cmax,*/ double ** grid, double ** next_grid);
 void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid);
 void save_data(char filename[]);
 void save_data_as_text(char filename[]);
@@ -65,6 +65,9 @@ char hostname[MYSTRLEN];
 long datasize;
 int ncomp=1000;            //!< Computational load
 double sum=0.0;
+int nrows_tot, ncols_tot,     // total n. of rows/cols
+    rmin, rmax, cmin, cmax,   // boundary of the "real" grid
+	rmin_int, rmax_int, cmin_int, cmax_int;  // boundary of the innermost part of the grid
 
 double ** grid;
 double ** next_grid;
@@ -153,12 +156,18 @@ int main(int argc, char ** argv) {
 
   log_start_main_loop(ta,tb);
 
-  int rmin=1;
-  int cmin=1;
-
-  int rmax=nrows;
-  int cmax=ncols;
-
+  rmin = 1;
+  cmin = 1;
+  rmax = nrows;
+  cmax = ncols;
+  rmin_int = rmin; // perche' dividiamo il dominio solo lungo l'asse orizzontale
+  rmax_int = rmax; // "
+  cmin_int = cmin+1;
+  cmax_int = cmax-1;
+  
+  nrows_tot = nrows+2;
+  ncols_tot = ncols+2;
+  
   int k;
 
   #if _OPENACC
@@ -170,14 +179,16 @@ int main(int argc, char ** argv) {
   #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2],sum)
   for(k=1; k<nsteps; k++) {    /* MAIN LOOP */
   
-    do_step(rmin,rmax,cmin,cmax, grid, next_grid);
+    do_step(/*rmin,rmax,cmin,cmax,*/ grid, next_grid);
+    // do_step_1();
+	// do_step_2();
 
     #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2])
 
     if (DEBUG==2){ 
-        #pragma acc update host (grid[0:nrows+2][0:ncols+2])
-	do_display (1, nrows, 1, ncols,  grid);
-	}
+      #pragma acc update host (grid[0:nrows+2][0:ncols+2])
+      do_display (1, nrows, 1, ncols,  grid);
+    }
 
     #pragma acc wait
 
@@ -338,10 +349,12 @@ void grid_copy(int rmin, int rmax, int cmin, int cmax, double ** grid, double **
 
 ////////////////////////////// do_step //////////////////////////////
 
-void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** next_grid)
+void do_step(/*int rmin, int rmax, int cmin, int cmax,*/ double ** grid, double ** next_grid)
 {
   int k,l,j,i;
   double neighbors=0.0;
+  
+  // ReceiveBuffer to ExtBorders
   #pragma acc kernels present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
   {
     #pragma acc loop vector independent
@@ -349,13 +362,17 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
   }
+  
+  // Compute IntBorders
   #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
   {
     #pragma acc loop gang independent
     #pragma omp parallel for private(i,j,k)
     for (i=rmin; i<=rmax; i++) {  // righe
-      #pragma acc loop vector independent
-      for (j=cmin; j<=cmax; j++) {  // colonne
+	
+      //#pragma acc loop vector independent
+      j=cmin; // bordo sinistro
+	  {
         #pragma ivdep
         #pragma vector aligned
         #pragma acc loop independent reduction(+: sum)
@@ -369,18 +386,63 @@ void do_step(int rmin, int rmax, int cmin, int cmax, double ** grid, double ** n
           next_grid[i][j] = 1.0;
         else
           next_grid[i][j] =  grid[i][j];
-        }
+      }
+ 
+      j=cmax; // bordo destro
+	  {
+        #pragma ivdep
+        #pragma vector aligned
+        #pragma acc loop independent reduction(+: sum)
+        for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
+
+        // LIFE
+        neighbors = grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
+        if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
+          next_grid[i][j] = 0.0;
+        else if ( neighbors == 3.0 )
+          next_grid[i][j] = 1.0;
+        else
+          next_grid[i][j] =  grid[i][j];
+      }
+    
+	}
+  }
+
+  // Compute Internals
+  #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
+  {
+    #pragma acc loop gang independent
+    #pragma omp parallel for private(i,j,k)
+    for (i=rmin_int; i<=rmax_int; i++) {  // righe
+      #pragma acc loop vector independent
+      for (j=cmin_int; j<=cmax_int; j++) {  // colonne
+
+        #pragma ivdep
+        #pragma vector aligned
+        #pragma acc loop independent reduction(+: sum)
+        for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
+
+        // LIFE
+        neighbors = grid[i+1][j+1] + grid[i+1][j] + grid[i+1][j-1] + grid[i][j+1] + grid[i][j-1] + grid[i-1][j+1]+grid[i-1][j]+grid[i-1][j-1];
+        if ( ( neighbors > 3.0 ) || ( neighbors < 2.0 ) )
+          next_grid[i][j] = 0.0;
+        else if ( neighbors == 3.0 )
+          next_grid[i][j] = 1.0;
+        else
+          next_grid[i][j] =  grid[i][j];
+
       }
     }
+  }
 
-    // prepare buffers
-    #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
-    {
+  // IntBorders to SendBuffer
+  #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
+  {
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
-    }
+  }
 }
 
 /////////////////////////// do_display ////////////////////////////////////
@@ -568,15 +630,13 @@ void save_data(char filename[]) {  // todo: make this function endian-independen
 
   //#pragma acc update host (grid[nrows+2][ncols+2])
 
-  int tot_rows = nrows+2;
-  int tot_cols = ncols+2;
   int errors=0;
 
   int i,j;
-  fwrite(&tot_rows,sizeof(tot_rows),1,fp_outfile);
-  fwrite(&tot_cols,sizeof(tot_cols),1,fp_outfile);
-  for (i=0; i<tot_rows; i++) {
-    if ( fwrite(grid[i],sizeof(double),tot_cols,fp_outfile) != tot_cols )
+  fwrite(&nrows_tot,sizeof(nrows_tot),1,fp_outfile);
+  fwrite(&ncols_tot,sizeof(ncols_tot),1,fp_outfile);
+  for (i=0; i<nrows_tot; i++) {
+    if ( fwrite(grid[i],sizeof(double),ncols_tot,fp_outfile) != ncols_tot )
       errors++;
   }
 
@@ -597,15 +657,15 @@ void save_data_as_text(char filename[]) {
     return;
   }
 
-  int tot_rows = nrows+2;
-  int tot_cols = ncols+2;
+  int nrows_tot = nrows+2;
+  int ncols_tot = ncols+2;
   int errors=0;
 
   int i,j;
-  fprintf(fp_outfile,"tot_rows: %d, tot_cols: %d.\n\n",tot_rows,tot_cols);
-  for (i=0; i<tot_rows; i++) {
+  fprintf(fp_outfile,"nrows_tot: %d, ncols_tot: %d.\n\n",nrows_tot,ncols_tot);
+  for (i=0; i<nrows_tot; i++) {
     fprintf(fp_outfile,"[%d] ",i);
-    for (j=0; j<tot_cols; j++) {
+    for (j=0; j<ncols_tot; j++) {
       if ( fprintf(fp_outfile,"%g ",grid[i][j]) < 0 )
         errors++;
     }
