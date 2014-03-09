@@ -1,0 +1,169 @@
+#node037.eurora.cineca.it
+#node037.eurora.cineca.it
+#node038.eurora.cineca.it
+#node038.eurora.cineca.it
+#node040.eurora.cineca.it
+#node040.eurora.cineca.it
+#node042.eurora.cineca.it
+#node042.eurora.cineca.it
+
+# mpirun -np 8 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 1000 -s 10 -d 0
+8 1 17000 17000 10 1000 5.885264 90.158615 96.043879 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 100 -s 10 -d 0
+8 1 17000 17000 10 100 6.052275 11.263443 17.315718 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 10 -s 10 -d 0
+8 1 17000 17000 10 10 6.097746 6.298530 12.396276 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 0 -s 10 -d 0
+8 1 17000 17000 10 0 5.856589 2.604831 8.461420 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 1000 -s 10 -d 0
+8 1 8000 8000 10 1000 1.287313 20.463432 21.750745 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 100 -s 10 -d 0
+8 1 8000 8000 10 100 1.284751 3.067218 4.351969 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 10 -s 10 -d 0
+8 1 8000 8000 10 10 1.350535 2.014351 3.364886 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 0 -s 10 -d 0
+8 1 8000 8000 10 0 1.345864 1.109589 2.455453 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 1000 -s 10 -d 0
+8 1 4000 4000 10 1000 0.357614 5.640050 5.997664 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 100 -s 10 -d 0
+8 1 4000 4000 10 100 0.345227 1.300697 1.645924 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 10 -s 10 -d 0
+8 1 4000 4000 10 10 0.327620 1.024655 1.352275 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 0 -s 10 -d 0
+8 1 4000 4000 10 0 0.330764 0.779204 1.109968 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 1000 -s 10 -d 0
+8 1 2000 2000 10 1000 0.093482 1.816302 1.909784 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 100 -s 10 -d 0
+8 1 2000 2000 10 100 0.092782 0.881987 0.974769 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 10 -s 10 -d 0
+8 1 2000 2000 10 10 0.086457 0.819384 0.905841 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 0 -s 10 -d 0
+8 1 2000 2000 10 0 0.093044 0.700544 0.793588 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 1000 -s 10 -d 0
+8 1 1000 1000 10 1000 0.028527 0.945945 0.974472 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 100 -s 10 -d 0
+8 1 1000 1000 10 100 0.028766 0.729135 0.757901 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 10 -s 10 -d 0
+8 1 1000 1000 10 10 0.025746 0.727233 0.752979 # node037 
+# mpirun -np 8 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 0 -s 10 -d 0
+8 1 1000 1000 10 0 0.027002 0.714171 0.741173 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 1000 -s 10 -d 0
+4 1 17000 17000 10 1000 5.794422 90.060654 95.855076 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 100 -s 10 -d 0
+4 1 17000 17000 10 100 5.842316 11.107321 16.949637 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 10 -s 10 -d 0
+4 1 17000 17000 10 10 5.677573 6.423188 12.100761 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 0 -s 10 -d 0
+4 1 17000 17000 10 0 5.906557 2.285068 8.191625 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 1000 -s 10 -d 0
+4 1 8000 8000 10 1000 1.336632 20.408412 21.745044 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 100 -s 10 -d 0
+4 1 8000 8000 10 100 1.289665 3.037355 4.327020 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 10 -s 10 -d 0
+4 1 8000 8000 10 10 1.284254 2.032947 3.317201 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 0 -s 10 -d 0
+4 1 8000 8000 10 0 1.351247 1.088829 2.440076 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 1000 -s 10 -d 0
+4 1 4000 4000 10 1000 0.329822 5.067661 5.397483 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 100 -s 10 -d 0
+4 1 4000 4000 10 100 0.329935 1.312106 1.642041 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 10 -s 10 -d 0
+4 1 4000 4000 10 10 0.369471 1.002397 1.371868 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 0 -s 10 -d 0
+4 1 4000 4000 10 0 0.340312 0.733651 1.073963 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 1000 -s 10 -d 0
+4 1 2000 2000 10 1000 0.092644 1.891354 1.983998 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 100 -s 10 -d 0
+4 1 2000 2000 10 100 0.094448 0.822837 0.917285 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 10 -s 10 -d 0
+4 1 2000 2000 10 10 0.089390 0.781321 0.870711 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 0 -s 10 -d 0
+4 1 2000 2000 10 0 0.091280 0.758555 0.849835 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 1000 -s 10 -d 0
+4 1 1000 1000 10 1000 0.031160 0.874942 0.906102 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 100 -s 10 -d 0
+4 1 1000 1000 10 100 0.027817 0.726312 0.754129 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 10 -s 10 -d 0
+4 1 1000 1000 10 10 0.025028 0.687079 0.712107 # node037 
+# mpirun -np 4 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 0 -s 10 -d 0
+4 1 1000 1000 10 0 0.028495 0.669400 0.697895 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 1000 -s 10 -d 0
+2 1 17000 17000 10 1000 5.899947 90.045976 95.945923 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 100 -s 10 -d 0
+2 1 17000 17000 10 100 5.773163 10.932227 16.705390 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 10 -s 10 -d 0
+2 1 17000 17000 10 10 5.824724 6.381386 12.206110 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 0 -s 10 -d 0
+2 1 17000 17000 10 0 5.694526 2.329312 8.023838 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 1000 -s 10 -d 0
+2 1 8000 8000 10 1000 1.343245 18.251262 19.594507 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 100 -s 10 -d 0
+2 1 8000 8000 10 100 1.283460 2.984537 4.267997 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 10 -s 10 -d 0
+2 1 8000 8000 10 10 1.302734 1.885595 3.188329 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 0 -s 10 -d 0
+2 1 8000 8000 10 0 1.368117 1.034138 2.402255 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 1000 -s 10 -d 0
+2 1 4000 4000 10 1000 0.348263 5.073153 5.421416 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 100 -s 10 -d 0
+2 1 4000 4000 10 100 0.348635 1.234776 1.583411 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 10 -s 10 -d 0
+2 1 4000 4000 10 10 0.338743 0.941680 1.280423 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 0 -s 10 -d 0
+2 1 4000 4000 10 0 0.349620 0.676441 1.026061 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 1000 -s 10 -d 0
+2 1 2000 2000 10 1000 0.097584 1.743522 1.841106 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 100 -s 10 -d 0
+2 1 2000 2000 10 100 0.092289 0.790789 0.883078 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 10 -s 10 -d 0
+2 1 2000 2000 10 10 0.093933 0.755218 0.849151 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 0 -s 10 -d 0
+2 1 2000 2000 10 0 0.094066 0.670821 0.764887 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 1000 -s 10 -d 0
+2 1 1000 1000 10 1000 0.047519 0.791495 0.839014 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 100 -s 10 -d 0
+2 1 1000 1000 10 100 0.029101 0.661143 0.690244 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 10 -s 10 -d 0
+2 1 1000 1000 10 10 0.031814 0.660006 0.691820 # node037 
+# mpirun -np 2 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 0 -s 10 -d 0
+2 1 1000 1000 10 0 0.033971 0.632667 0.666638 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 1000 -s 10 -d 0
+1 1 17000 17000 10 1000 5.850572 89.575822 95.426394 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 100 -s 10 -d 0
+1 1 17000 17000 10 100 5.732414 10.634776 16.367190 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 10 -s 10 -d 0
+1 1 17000 17000 10 10 5.742505 5.872199 11.614704 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 17000 -c 17000 -n 0 -s 10 -d 0
+1 1 17000 17000 10 0 5.747491 2.106968 7.854459 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 1000 -s 10 -d 0
+1 1 8000 8000 10 1000 1.281548 17.789096 19.070644 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 100 -s 10 -d 0
+1 1 8000 8000 10 100 1.308144 2.499825 3.807969 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 10 -s 10 -d 0
+1 1 8000 8000 10 10 1.282350 1.442442 2.724792 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 8000 -c 8000 -n 0 -s 10 -d 0
+1 1 8000 8000 10 0 1.289173 0.562554 1.851727 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 1000 -s 10 -d 0
+1 1 4000 4000 10 1000 0.336602 4.616060 4.952662 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 100 -s 10 -d 0
+1 1 4000 4000 10 100 0.334936 0.778939 1.113875 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 10 -s 10 -d 0
+1 1 4000 4000 10 10 0.335067 0.507285 0.842352 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 4000 -c 4000 -n 0 -s 10 -d 0
+1 1 4000 4000 10 0 0.345663 0.300908 0.646571 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 1000 -s 10 -d 0
+1 1 2000 2000 10 1000 0.094670 1.450899 1.545569 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 100 -s 10 -d 0
+1 1 2000 2000 10 100 0.094443 0.343988 0.438431 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 10 -s 10 -d 0
+1 1 2000 2000 10 10 0.088958 0.281200 0.370158 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 2000 -c 2000 -n 0 -s 10 -d 0
+1 1 2000 2000 10 0 0.092195 0.220399 0.312594 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 1000 -s 10 -d 0
+1 1 1000 1000 10 1000 0.029314 0.344115 0.373429 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 100 -s 10 -d 0
+1 1 1000 1000 10 100 0.031081 0.246708 0.277789 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 10 -s 10 -d 0
+1 1 1000 1000 10 10 0.033062 0.218427 0.251489 # node037 
+# mpirun -np 1 ./life_hpc_acc_mpi -r 1000 -c 1000 -n 0 -s 10 -d 0
+1 1 1000 1000 10 0 0.028141 0.204106 0.232247 # node037 
