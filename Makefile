@@ -23,13 +23,15 @@ RUN   = mpirun
 RM    = rm -f
 MyO   = -O3
 
-all: pgi gnu mic
+all: pgi gnu mic kep
 
 pgi: accpgi omppgi serpgi
 
 gnu:        ompgnu sergnu
 
 mic:        ompmic
+
+kep: acckep ompkep
 
 accpgi:
 	bash -c "$(LOADPGI) ; \
@@ -58,15 +60,15 @@ ompmic:
 	$(CC) $(MyO) $(PACKAGE).c -mmic -fopenmp -vec-report2 -o $(PACKAGE)_omp.mic"
 
 acckep:
-	pgcc -Mmpi=mpich -acc -ta=nvidia -Minfo=accel -lpgacc $(PACKAGE).c -o $(PACKAGE)_acckep
+	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=nvidia -Minfo=accel -lpgacc
 
 ompkep:
-	pgcc -Mmpi=mpich $(MyO) -mp=numa -fast -mp -Minfo=vec $(PACKAGE).c -o $(PACKAGE)_ompkep
+	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_ompkep $(MyO) -mp=numa -fast -mp -Minfo=vec
 
 
-clean: ; $(RM) $(PACKAGE)_accpgi  $(PACKAGE)_omppgi  $(PACKAGE)_ompgnu $(PACKAGE)_omp.mic $(TESTFILE)
+clean: ; $(RM) $(PACKAGE)_accpgi  $(PACKAGE)_omppgi $(PACKAGE)_serpgi $(PACKAGE)_ompgnu $(PACKAGE)_sergnu $(PACKAGE)_omp.mic $(PACKAGE)_acckep $(PACKAGE)_ompkep $(TESTFILE)
 
-.PHONY : clean all pgi gnu mic
+.PHONY : clean all pgi gnu mic kep
 
 # ----------------------------------------------------------- #
 
@@ -76,33 +78,13 @@ tests_pgi: test_accpgi test_omppgi test_serpgi
 
 tests_gnu: test_ompgnu test_sergnu
 
-test_accpgi:
+tests_mic: test_ompmic
+
+tests_kep: test_acckep test_ompkep
+
+test_%:
 	@bash -c "rm -f $(TESTFILE); $(LOADPGI); \
-	$(RUN) $(PACKAGE)_accpgi $(TESTPARAMS) -f$(TESTFILE); \
-	echo Comparing $(TESTFILE) to $(TESTREFERENCE)...; \
-	if diff $(TESTFILE) $(TESTREFERENCE) &> /dev/null; then echo --- $@ OK ---; else echo --- $@ FAIL ---; fi; echo "
-
-test_omppgi:
-	@bash -c "rm -f $(TESTFILE);  $(LOADPGI); \
-	$(RUN) $(PACKAGE)_omppgi $(TESTPARAMS) -f$(TESTFILE); \
-	echo Comparing $(TESTFILE) to $(TESTREFERENCE)...; \
-	if diff $(TESTFILE) $(TESTREFERENCE) &> /dev/null; then echo --- $@ OK ---; else echo --- $@ FAIL ---; fi; echo "
-
-test_serpgi:
-	@bash -c "rm -f $(TESTFILE);  $(LOADPGI); \
-	$(RUN) $(PACKAGE)_serpgi $(TESTPARAMS) -f$(TESTFILE); \
-	echo Comparing $(TESTFILE) to $(TESTREFERENCE)...; \
-	if diff $(TESTFILE) $(TESTREFERENCE) &> /dev/null; then echo --- $@ OK ---; else echo --- $@ FAIL ---; fi; echo "
-
-test_ompgnu:
-	@bash -c "rm -f $(TESTFILE);  $(UNLOADPGI); $(LOADGNU); \
-	$(RUN) $(PACKAGE)_ompgnu $(TESTPARAMS) -f$(TESTFILE); \
-	echo Comparing $(TESTFILE) to $(TESTREFERENCE)...; \
-	if diff $(TESTFILE) $(TESTREFERENCE) &> /dev/null; then echo --- $@ OK ---; else echo --- $@ FAIL ---; fi; echo "
-
-test_sergnu:
-	@bash -c "rm -f $(TESTFILE);  $(UNLOADPGI); $(LOADGNU); \
-	$(RUN) $(PACKAGE)_sergnu $(TESTPARAMS) -f$(TESTFILE); \
+	$(RUN) $(PACKAGE)_$* $(TESTPARAMS) -f$(TESTFILE); \
 	echo Comparing $(TESTFILE) to $(TESTREFERENCE)...; \
 	if diff $(TESTFILE) $(TESTREFERENCE) &> /dev/null; then echo --- $@ OK ---; else echo --- $@ FAIL ---; fi; echo "
 
