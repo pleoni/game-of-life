@@ -555,14 +555,16 @@ void do_step_1(double ** grid, double ** next_grid, int async_queue) {
   int k,l,j,i;
   double neighbors=0.0;
   
-  // ReceiveBuffer to ExtBorders
-  #pragma acc kernels present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
-  //#pragma acc kernels present(grid[0:nrows_tot][0:ncols_tot],col_recv_l[0:nrows_tot],col_recv_r[0:nrows_tot],sum,A[0:ncomp],B[0:ncomp])
-  {
-    #pragma acc loop vector independent
-    for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
-    #pragma acc loop vector independent
-    for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
+  if (mpi_size>1) {
+    // ReceiveBuffer to ExtBorders
+    #pragma acc kernels present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
+    //#pragma acc kernels present(grid[0:nrows_tot][0:ncols_tot],col_recv_l[0:nrows_tot],col_recv_r[0:nrows_tot],sum,A[0:ncomp],B[0:ncomp])
+    {
+      #pragma acc loop vector independent
+      for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
+      #pragma acc loop vector independent
+      for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
+    }
   }
   
   // Compute IntBorders
@@ -649,14 +651,15 @@ void do_step_1(double ** grid, double ** next_grid, int async_queue) {
     }
   }  // end Compute IntBorders
 
-
-  // IntBorders to SendBuffer
-  #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
-  {
-    #pragma acc loop vector independent
-    for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
-    #pragma acc loop vector independent
-    for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
+  if (mpi_size>1) {
+    // IntBorders to SendBuffer
+    #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
+    {
+      #pragma acc loop vector independent
+      for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
+      #pragma acc loop vector independent
+      for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
+    }
   }
 
 }
