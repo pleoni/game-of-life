@@ -20,6 +20,7 @@ TESTPARAMS    = -r100 -c100 -s1000 -n10 -d0
 
 CC    = mpicc
 RUN   = mpirun
+KEPRUN = /opt/pgi/linux86-64/14.1/mpi/mpich/bin/mpirun
 RM    = rm -f
 MyO   = -O3
 
@@ -82,9 +83,15 @@ tests_mic: test_ompmic
 
 tests_kep: test_acckep test_ompkep
 
-test_%:
+test_%kep:  # special case to match on kepler
+	@bash -c "rm -f $(TESTFILE);\
+	$(KEPRUN) ./$(PACKAGE)_$*kep $(TESTPARAMS) -f$(TESTFILE); \
+	echo Comparing $(TESTFILE) to $(TESTREFERENCE)...; \
+	if diff $(TESTFILE) $(TESTREFERENCE) &> /dev/null; then echo --- $@ OK ---; else echo --- $@ FAIL ---; fi; echo "
+
+test_%:     # general case to match all other test targets
 	@bash -c "rm -f $(TESTFILE); $(LOADPGI); \
-	$(RUN) $(PACKAGE)_$* $(TESTPARAMS) -f$(TESTFILE); \
+	$(RUN) ./$(PACKAGE)_$* $(TESTPARAMS) -f$(TESTFILE); \
 	echo Comparing $(TESTFILE) to $(TESTREFERENCE)...; \
 	if diff $(TESTFILE) $(TESTREFERENCE) &> /dev/null; then echo --- $@ OK ---; else echo --- $@ FAIL ---; fi; echo "
 
