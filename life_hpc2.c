@@ -197,11 +197,11 @@ int main(int argc, char ** argv) {
 
     if (mpi_size>1)  IntBorders_to_SendBuffers(grid);
 
-    #pragma acc update host(grid[0:nrows+2][0:ncols+2])
+    #pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
 
     if (DEBUG==2) do_display(1, nrows, 1, ncols,  grid);
 
-    // ---------------------------------
+    #pragma acc wait(1)  // ---------------------------------
 
     compute_Internals(grid,next_grid);  // seconda parte
 
@@ -218,7 +218,9 @@ int main(int argc, char ** argv) {
     // Se c'e' un solo rank MPI, a questo punto la griglia next_grid sul device e' completa e coerente al passo n+1, comprese le celle ghost.
     // Se invece ci sono piu' rank, ho caricato i buffer delle celle ghost sul device, ma verranno copiate nella griglia solo all'inizio del prossimo ciclo.
 
-    
+    #pragma acc wait(2,3)
+    #pragma acc wait(4)
+
     swap_grids();
   
   } // end openacc data region - implicit copyout
@@ -299,7 +301,7 @@ void copy_borders_top_bottom(double ** grid) {
   
   int i;
 
-  #pragma acc kernels present(grid[nrows+2][ncols+2])
+  #pragma acc kernels async(3) present(grid[nrows+2][ncols+2])
   #pragma acc loop vector independent
   for (i = cmin - 1; i <= cmax + 1; ++i) {  // copy rows (top-bottom)
     grid[rmin-1][i] = grid[rmax][i];
@@ -312,7 +314,7 @@ void copy_borders_left_right(double ** grid) {
 
   int i;
 
-  #pragma acc kernels present(grid[nrows+2][ncols+2])
+  #pragma acc kernels async(3) present(grid[nrows+2][ncols+2])
   #pragma acc loop vector independent
   for (i = rmin - 1; i <= rmax + 1; ++i) {  // copy cols (left-right)
     grid[i][cmin-1] = grid[i][cmax];
@@ -559,7 +561,7 @@ void RecvBuffers_to_ExtBorders(double ** grid) {
   double neighbors=0.0;
 
   // ReceiveBuffers to ExtBorders
-  #pragma acc kernels present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
+  #pragma acc kernels async(1) present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
   //#pragma acc kernels present(grid[0:nrows_tot][0:ncols_tot],col_recv_l[0:nrows_tot],col_recv_r[0:nrows_tot],sum,A[0:ncomp],B[0:ncomp])
   {
     #pragma acc loop vector independent
@@ -571,29 +573,29 @@ void RecvBuffers_to_ExtBorders(double ** grid) {
 }
 
 void IntBorders_to_SendBuffers(double ** grid) {
-
+  
   int k,l,j,i;
   double neighbors=0.0;
 
   // IntBorders to SendBuffers
-  #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
+  #pragma acc kernels async(1) present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
   {
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
   }
-
+  
 }
 
 
 void compute_Borders(double ** grid, double ** next_grid) {
-
+  
   int k,l,j,i;
   double neighbors=0.0;
 
   // Compute IntBorders
-  #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
+  #pragma acc kernels async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
   {
     #pragma acc loop gang independent collapse(3) reduction(+: sum)
     #pragma omp parallel for private(i,j,k)
@@ -674,12 +676,12 @@ void compute_Borders(double ** grid, double ** next_grid) {
 }
 
 void compute_Internals(double ** grid, double ** next_grid) {
-
+  
   int k,l,j,i;
   double neighbors=0.0;
 
   // Compute Internals
-  #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
+  #pragma acc kernels async(2) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
   {
     #pragma acc loop gang independent collapse(3) reduction(+: sum)
     #pragma omp parallel for private(i,j,k)
@@ -701,7 +703,7 @@ void compute_Internals(double ** grid, double ** next_grid) {
       }
     }
   }  // end Compute Internals
-
+  
 }
 
 
@@ -722,6 +724,7 @@ void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid) {
   }
 
   usleep(delay);
+  
 }
 
 
