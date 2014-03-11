@@ -39,9 +39,12 @@ void init_grid(int nrows, int rmin, int rmax, int ncols, double ** grid, double 
 //void allocate_grid(int,  int , double *** grid);
 void randomize_grid(int, int , double ** grid, double base_life);
 double rand_double();
-void do_step(/*int rmin, int rmax, int cmin, int cmax,*/ double ** grid, double ** next_grid);
-void do_step_1(double ** grid, double ** next_grid, int async_queue);
-void do_step_2(double ** grid, double ** next_grid, int async_queue);
+//void do_step(/*int rmin, int rmax, int cmin, int cmax,*/ double ** grid, double ** next_grid);
+//void do_step_1(double ** grid, double ** next_grid);
+void compute_Borders(double ** grid, double ** next_grid);
+void compute_Internals(double ** grid, double ** next_grid);
+void RecvBuffers_to_ExtBorders(double ** grid);
+void IntBorders_to_SendBuffers(double ** grid);
 void mpi_sendrecv_buffers();
 void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid);
 void save_data(char filename[]);
@@ -187,19 +190,23 @@ int main(int argc, char ** argv) {
   #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2],sum)
   // Inizio regione "data": con "copy" e' implicita la copyout alla fine, quindi non serve rifare l'update host della grid dopo il loop.
   for(k=0; k<nsteps; k++) {    /* MAIN LOOP */
-  
-    do_step_1(grid,next_grid,async_queue_1);  // prima parte
 
-    
-    #pragma acc update host (grid[0:nrows+2][0:ncols+2])
+    if (mpi_size>1)  RecvBuffers_to_ExtBorders(grid);
+
+    compute_Borders(grid,next_grid);
+
+    if (mpi_size>1)  IntBorders_to_SendBuffers(grid);
+
+    #pragma acc update host(grid[0:nrows+2][0:ncols+2])
+
     if (DEBUG==2) do_display(1, nrows, 1, ncols,  grid);
 
-    #pragma acc wait
-    
-    do_step_2(grid,next_grid,async_queue_2);  // seconda parte
+    // ---------------------------------
+
+    compute_Internals(grid,next_grid);  // seconda parte
 
     copy_borders_top_bottom(next_grid);  // copia direttamente sulla griglia
-    
+
     if (mpi_size==1) {
       copy_borders_left_right(next_grid);  // copia direttamente sulla griglia
     } else {
@@ -210,11 +217,10 @@ int main(int argc, char ** argv) {
 
     // Se c'e' un solo rank MPI, a questo punto la griglia next_grid sul device e' completa e coerente al passo n+1, comprese le celle ghost.
     // Se invece ci sono piu' rank, ho caricato i buffer delle celle ghost sul device, ma verranno copiate nella griglia solo all'inizio del prossimo ciclo.
-    
-    //copy_border(1, nrows, 1, ncols,  next_grid);
 
-    swap_grids();
     
+    swap_grids();
+  
   } // end openacc data region - implicit copyout
 
   gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
@@ -413,8 +419,8 @@ void do_step(/*int rmin, int rmax, int cmin, int cmax,*/double ** grid, double *
 
   int k,l,j,i;
   double neighbors=0.0;
-  
-  // ReceiveBuffer to ExtBorders
+
+  // ReceiveBuffers to ExtBorders
   #pragma acc kernels present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
   //#pragma acc kernels present(grid[0:nrows_tot][0:ncols_tot],col_recv_l[0:nrows_tot],col_recv_r[0:nrows_tot],sum,A[0:ncomp],B[0:ncomp])
   {
@@ -423,10 +429,10 @@ void do_step(/*int rmin, int rmax, int cmin, int cmax,*/double ** grid, double *
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
   }
-  
+
   // Compute IntBorders
   #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
-  {  
+  {
     #pragma acc loop gang independent
     #pragma omp parallel for private(i,j,k)
     for (i=rmin; i<=rmax; i++) {  // righe
@@ -507,7 +513,7 @@ void do_step(/*int rmin, int rmax, int cmin, int cmax,*/double ** grid, double *
     }
   }  // end Compute IntBorders
 
-  // IntBorders to SendBuffer
+  // IntBorders to SendBuffers
   #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
   {
     #pragma acc loop vector independent
@@ -546,26 +552,49 @@ void do_step(/*int rmin, int rmax, int cmin, int cmax,*/double ** grid, double *
 
 }
 
-void do_step_1(double ** grid, double ** next_grid, int async_queue) {
+
+void RecvBuffers_to_ExtBorders(double ** grid) {
+  
+  int k,l,j,i;
+  double neighbors=0.0;
+
+  // ReceiveBuffers to ExtBorders
+  #pragma acc kernels present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
+  //#pragma acc kernels present(grid[0:nrows_tot][0:ncols_tot],col_recv_l[0:nrows_tot],col_recv_r[0:nrows_tot],sum,A[0:ncomp],B[0:ncomp])
+  {
+    #pragma acc loop vector independent
+    for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
+    #pragma acc loop vector independent
+    for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
+  }
+  
+}
+
+void IntBorders_to_SendBuffers(double ** grid) {
 
   int k,l,j,i;
   double neighbors=0.0;
-  
-  if (mpi_size>1) {
-    // ReceiveBuffer to ExtBorders
-    #pragma acc kernels present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
-    //#pragma acc kernels present(grid[0:nrows_tot][0:ncols_tot],col_recv_l[0:nrows_tot],col_recv_r[0:nrows_tot],sum,A[0:ncomp],B[0:ncomp])
-    {
-      #pragma acc loop vector independent
-      for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
-      #pragma acc loop vector independent
-      for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
-    }
+
+  // IntBorders to SendBuffers
+  #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
+  {
+    #pragma acc loop vector independent
+    for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
+    #pragma acc loop vector independent
+    for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
   }
-  
+
+}
+
+
+void compute_Borders(double ** grid, double ** next_grid) {
+
+  int k,l,j,i;
+  double neighbors=0.0;
+
   // Compute IntBorders
   #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
-  {  
+  {
     #pragma acc loop gang independent collapse(3) reduction(+: sum)
     #pragma omp parallel for private(i,j,k)
     for (i=rmin; i<=rmax; i++) {  // righe
@@ -642,20 +671,9 @@ void do_step_1(double ** grid, double ** next_grid, int async_queue) {
     }
   }  // end Compute IntBorders
 
-  if (mpi_size>1) {
-    // IntBorders to SendBuffer
-    #pragma acc kernels present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
-    {
-      #pragma acc loop vector independent
-      for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
-      #pragma acc loop vector independent
-      for (i=0; i<nrows+2; i++) col_send_r[i]=grid[i][ncols];  //Copy Col n to send buff
-    }
-  }
-
 }
 
-void do_step_2(double ** grid, double ** next_grid, int async_queue) {
+void compute_Internals(double ** grid, double ** next_grid) {
 
   int k,l,j,i;
   double neighbors=0.0;
