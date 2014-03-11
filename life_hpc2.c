@@ -191,15 +191,13 @@ int main(int argc, char ** argv) {
   // Inizio regione "data": con "copy" e' implicita la copyout alla fine, quindi non serve rifare l'update host della grid dopo il loop.
   for(k=0; k<nsteps; k++) {    /* MAIN LOOP */
 
+    #pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
+    
     if (mpi_size>1)  RecvBuffers_to_ExtBorders(grid);
 
     compute_Borders(grid,next_grid);
 
     if (mpi_size>1)  IntBorders_to_SendBuffers(grid);
-
-    #pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
-
-    if (DEBUG==2) do_display(1, nrows, 1, ncols,  grid);
 
     #pragma acc wait(1)  // ---------------------------------
 
@@ -219,7 +217,10 @@ int main(int argc, char ** argv) {
     // Se invece ci sono piu' rank, ho caricato i buffer delle celle ghost sul device, ma verranno copiate nella griglia solo all'inizio del prossimo ciclo.
 
     #pragma acc wait(2,3)
+
     #pragma acc wait(4)
+    
+    if (DEBUG==2) do_display(1, nrows, 1, ncols,  grid);
 
     swap_grids();
   
