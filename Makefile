@@ -36,7 +36,7 @@ kep: acckep ompkep
 
 accpgi:
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_accpgi -acc -ta=nvidia -Minfo=accel -lpgacc"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_accpgi -acc -ta=nvidia,cuda5.5,cc35 -Minfo=accel -lpgacc"
 
 omppgi: 
 	bash -c "$(LOADPGI) ; \
@@ -61,7 +61,7 @@ ompmic:
 	$(CC) $(MyO) $(PACKAGE).c -mmic -fopenmp -vec-report2 -o $(PACKAGE)_omp.mic"
 
 acckep:
-	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=nvidia -Minfo=accel -lpgacc
+	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=nvidia,cuda5.5,cc35 -Minfo=accel -lpgacc
 
 ompkep:
 	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_ompkep $(MyO) -mp=numa -fast -mp -Minfo=vec
