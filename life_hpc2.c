@@ -186,12 +186,12 @@ int main(int argc, char ** argv) {
   #endif
 
   #pragma warning disable 161 //disable warnings in icc compilation (due to lack of openacc support)
-
+  
   #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2],sum)
   // Inizio regione "data": con "copy" e' implicita la copyout alla fine, quindi non serve rifare l'update host della grid dopo il loop.
   for(k=0; k<nsteps; k++) {    /* MAIN LOOP */
 
-    #pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
+    //#pragma acc update host(grid[0:nrows+2][0:ncols+2])  // async(4)
     
     if (mpi_size>1)  RecvBuffers_to_ExtBorders(grid);
 
@@ -199,7 +199,7 @@ int main(int argc, char ** argv) {
 
     if (mpi_size>1)  IntBorders_to_SendBuffers(grid);
 
-    #pragma acc wait(1)  // ---------------------------------
+    //#pragma acc wait(1)  // ---------------------------------
 
     compute_Internals(grid,next_grid);  // seconda parte
 
@@ -216,9 +216,9 @@ int main(int argc, char ** argv) {
     // Se c'e' un solo rank MPI, a questo punto la griglia next_grid sul device e' completa e coerente al passo n+1, comprese le celle ghost.
     // Se invece ci sono piu' rank, ho caricato i buffer delle celle ghost sul device, ma verranno copiate nella griglia solo all'inizio del prossimo ciclo.
 
-    #pragma acc wait(2,3)
+    //#pragma acc wait(2,3)
 
-    #pragma acc wait(4)
+    //#pragma acc wait(4)
     
     if (DEBUG==2) do_display(1, nrows, 1, ncols,  grid);
 
@@ -302,7 +302,7 @@ void copy_borders_top_bottom(double ** grid) {
   
   int i;
 
-  #pragma acc kernels async(3) present(grid[nrows+2][ncols+2])
+  #pragma acc kernels /*async(3)*/ present(grid[nrows+2][ncols+2])
   #pragma acc loop vector independent
   for (i = cmin - 1; i <= cmax + 1; ++i) {  // copy rows (top-bottom)
     grid[rmin-1][i] = grid[rmax][i];
@@ -315,7 +315,7 @@ void copy_borders_left_right(double ** grid) {
 
   int i;
 
-  #pragma acc kernels async(3) present(grid[nrows+2][ncols+2])
+  #pragma acc kernels /*async(3)*/ present(grid[nrows+2][ncols+2])
   #pragma acc loop vector independent
   for (i = rmin - 1; i <= rmax + 1; ++i) {  // copy cols (left-right)
     grid[i][cmin-1] = grid[i][cmax];
@@ -562,7 +562,7 @@ void RecvBuffers_to_ExtBorders(double ** grid) {
   double neighbors=0.0;
 
   // ReceiveBuffers to ExtBorders
-  #pragma acc kernels async(1) present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
+  #pragma acc kernels /*async(1)*/ present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
   //#pragma acc kernels present(grid[0:nrows_tot][0:ncols_tot],col_recv_l[0:nrows_tot],col_recv_r[0:nrows_tot],sum,A[0:ncomp],B[0:ncomp])
   {
     #pragma acc loop vector independent
@@ -579,7 +579,7 @@ void IntBorders_to_SendBuffers(double ** grid) {
   double neighbors=0.0;
 
   // IntBorders to SendBuffers
-  #pragma acc kernels async(1) present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
+  #pragma acc kernels /*async(1)*/ present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
   {
     #pragma acc loop vector independent
     for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
@@ -596,7 +596,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
   double neighbors=0.0;
 
   // Compute IntBorders
-  #pragma acc kernels async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
+  #pragma acc kernels /*async(1)*/ present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
   {
     #pragma acc loop gang independent collapse(3) reduction(+: sum)
     #pragma omp parallel for private(i,j,k)
@@ -682,7 +682,7 @@ void compute_Internals(double ** grid, double ** next_grid) {
   double neighbors=0.0;
 
   // Compute Internals
-  #pragma acc kernels async(2) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
+  #pragma acc kernels /*async(2)*/ present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
   {
     #pragma acc loop gang independent collapse(3) reduction(+: sum)
     #pragma omp parallel for private(i,j,k)
@@ -759,15 +759,21 @@ void init_grid(int nrows, int rmin, int rmax, int ncols, double ** grid, double 
 
   if (DEBUG == 1) printf("init-grid %d-%d %d %f\n",  rmin,rmax,ncols,prob);
 
+  // allocazione di un blocco di memoria contigua
+  //double * temp_pointer = (double*) malloc (sizeof(double)*(nrows+2)*(ncols+2));
+  // questo puntatore viene distrutto alla fine della funzione, ma tanto la memoria
+  // e' gia' stata puntata dall'array di puntatori grid[nrows+2] .
+  // Ora aggiusto i puntatori nell'array grid per riavere la situazione a cui sono abituato:
+  //for (i=0; i<nrows+2; i++) {
+  //  grid[i] =  temp_pointer + i*(ncols+2);
+  //}  
+  
   for (i=rmin; i<rmax+1;i++) {
-
-    grid[i] =  (double *)  malloc ( sizeof (double) * (ncols+2) );
+    grid[i] =  (double *)  malloc ( sizeof (double) * (ncols+2) ); // allocazione di array distinti
     if (prob)
       for ( j=0;j<=ncols+1;j++)
         if ( rand_double() <prob ) grid[i][j]=1;
         else  grid[i][j]=0;
-  //  for (j=0;j<ncols+2;j++) (*grid)[i][j]=0;
-
   }
 
 }
