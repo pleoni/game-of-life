@@ -194,13 +194,11 @@ int main(int argc, char ** argv) {
 
     if (mpi_size>1)  IntBorders_to_SendBuffers(grid);
 
-    if (k > 0) {
-	#pragma acc update async(4) host(grid[0:nrows+2][0:ncols+2]) // async(4)
-	}    
-
     #pragma acc wait(1)  // ---------------------------------
 
     compute_Internals(grid,next_grid);  // seconda parte
+
+    #pragma acc update async(4) host(grid[0:nrows+2][0:ncols+2])
 
     copy_borders_top_bottom(next_grid);  // copia direttamente sulla griglia
 
