@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2014.03.11";
+char version[]="2014.03.13";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -243,7 +243,7 @@ void copy_borders_top_bottom(double ** grid) {
   
   int i;
 
-  #pragma acc parallel async(3) present(grid[nrows+2][ncols+2])
+  #pragma acc parallel vector_length(16) async(3) present(grid[nrows+2][ncols+2])
   #pragma acc loop vector
   for (i = cmin - 1; i <= cmax + 1; ++i) {  // copy rows (top-bottom)
     grid[rmin-1][i] = grid[rmax][i];
@@ -256,7 +256,7 @@ void copy_borders_left_right(double ** grid) {
 
   int i;
 
-  #pragma acc parallel async(3) present(grid[nrows+2][ncols+2])
+  #pragma acc parallel vector_length(16) async(3) present(grid[nrows+2][ncols+2])
   #pragma acc loop vector
   for (i = rmin - 1; i <= rmax + 1; ++i) {  // copy cols (left-right)
     grid[i][cmin-1] = grid[i][cmax];
@@ -344,8 +344,7 @@ void RecvBuffers_to_ExtBorders(double ** grid) {
   double neighbors=0.0;
 
   // ReceiveBuffers to ExtBorders
-  #pragma acc parallel async(1) present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
-  //#pragma acc kernels present(grid[0:nrows_tot][0:ncols_tot],col_recv_l[0:nrows_tot],col_recv_r[0:nrows_tot],sum,A[0:ncomp],B[0:ncomp])
+  #pragma acc parallel vector_length(16) async(1) present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
   {
     #pragma acc loop vector
     for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
@@ -361,7 +360,7 @@ void IntBorders_to_SendBuffers(double ** grid) {
   double neighbors=0.0;
 
   // IntBorders to SendBuffers
-  #pragma acc parallel async(1) present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
+  #pragma acc parallel vector_length(16) async(1) present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
   {
     #pragma acc loop vector
     for (i=0; i<nrows+2; i++) col_send_l[i]=grid[i][1];  // Copy Col 1 to send buff
@@ -378,14 +377,16 @@ void compute_Borders(double ** grid, double ** next_grid) {
   double neighbors=0.0;
 
   // Compute IntBorders
-  #pragma acc parallel async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
+  #pragma acc parallel num_gangs(100) vector_length(16) async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
   {
-    #pragma acc loop collapse(3) reduction(+: sum)
+    #pragma acc loop gang
     #pragma omp parallel for private(i,j,k)
     for (i=rmin; i<=rmax; i++) {  // righe
+      #pragma acc loop worker
       for (j=cmin; j<cmin_int; j++) { // bordo sinistro
         #pragma ivdep
         #pragma vector aligned
+        #pragma acc loop vector reduction(+: sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
@@ -398,13 +399,14 @@ void compute_Borders(double ** grid, double ** next_grid) {
           next_grid[i][j] =  grid[i][j];
       }
     }
-
-    #pragma acc loop gang collapse(3) reduction(+: sum)
     #pragma omp parallel for private(i,j,k)
+     #pragma acc loop gang
     for (i=rmin; i<=rmax; i++) {  // righe
+      #pragma acc loop worker
       for (j=cmax; j>cmax_int; j--) { // bordo destro
         #pragma ivdep
         #pragma vector aligned
+        #pragma acc loop vector reduction(+: sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
@@ -418,14 +420,14 @@ void compute_Borders(double ** grid, double ** next_grid) {
       }
     }
 
-    #pragma acc loop gang collapse(3) reduction(+: sum)
     #pragma omp parallel for private(i,j,k)
+    #pragma acc loop gang
     for (j=cmin_int; j<=cmax_int; j++) {  // colonne
-      //#pragma acc loop //independent
+     #pragma acc loop worker
       for (i=rmin; i<rmin_int; i++) {  // bordo superiore
         #pragma ivdep
         #pragma vector aligned
-        //#pragma acc loop vector /*independent*/ reduction(+: sum)
+        #pragma acc loop vector reduction(+: sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
@@ -437,11 +439,11 @@ void compute_Borders(double ** grid, double ** next_grid) {
         else
           next_grid[i][j] =  grid[i][j];
       }
-      //#pragma acc loop gang
+      #pragma acc loop
       for (i=rmax; i>rmax_int; i--) {  // bordo inferiore
         #pragma ivdep
         #pragma vector aligned
-        //#pragma acc loop vector reduction(+: sum)
+        #pragma acc loop vector reduction(+: sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
@@ -464,14 +466,16 @@ void compute_Internals(double ** grid, double ** next_grid) {
   double neighbors=0.0;
 
   // Compute Internals
-  #pragma acc parallel async(2) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
+  #pragma acc parallel present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp]) reduction(+: sum) async(2) num_gangs(400) vector_length(16)
   {
-    #pragma acc loop gang collapse(3) reduction(+: sum)
+    #pragma acc loop gang 
     #pragma omp parallel for private(i,j,k)
     for (i=rmin_int; i<=rmax_int; i++) {  // righe
+      #pragma acc loop workers 
       for (j=cmin_int; j<=cmax_int; j++) {  // colonne
         #pragma ivdep
         #pragma vector aligned
+	#pragma acc loop vector
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
