@@ -3,17 +3,15 @@
 #PBS -N life_acc
 #PBS -o life_acc.out
 #PBS -l select=1:ncpus=1:ngpus=1:mem=5gb
-####PBS -l select=8:ncpus=1:ngpus=1:mem=5gb
-#PBS -q debug
-####PBS -q parallel
+#PBS -q parallel
 #PBS -A CON13_INFN          
 module load pgi openmpi/1.6.5--pgi--14.1
 
 #ulimit -m
 #cd /eurora/home/userexternal/ralfieri/life/openacc/game-of-life
-cd ~/life/git/game-of-life
+cd ~/game-of-life
 
-echo "#`cat $PBS_NODEFILE`"
+#echo "#`cat $PBS_NODEFILE`"
 
 for N in $(echo 1)
 do
