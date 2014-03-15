@@ -62,6 +62,7 @@ void init_GPU();
 //////////// global vars ////////////
 
 int mygpu=0; //default GPU
+int contig_malloc=0;
 
 int nsteps=1000;       //!< Number of Steps
 int ncols=80;          //!< Number of Columns
@@ -291,7 +292,7 @@ void mpi_sendrecv_buffers() {
 void options(int argc, char * argv[]) {
 
   int i;
-  while ( (i = getopt(argc, argv, "W:vc:r:s:d:ht:f:C:n:G:")) != -1) {
+  while ( (i = getopt(argc, argv, "W:vc:r:s:d:ht:f:C:n:G:a")) != -1) {
     switch (i) {
     case 'c':  ncols       = strtol(optarg, NULL, 10);  break;
     case 'G':  mygpu       = strtol(optarg, NULL, 10);  break;
@@ -301,6 +302,7 @@ void options(int argc, char * argv[]) {
     case 't':  num_threads = strtol(optarg, NULL, 10);  break;
     case 'd':  DEBUG       = strtol(optarg, NULL, 10);  break;
     case 'f':  strncpy(datafile,optarg,MYSTRLEN-1); datafile[MYSTRLEN-1]='\0'; break;
+    case 'a':  contig_malloc = 1;                       break;
     case 'h':  usage(argv); exit(1);
     case 'v':  printf("%s version %s\n",argv[0],version); exit(1);
     case '?':  usage(argv); exit(1);
@@ -321,6 +323,7 @@ void usage(char * argv[])  {
   printf ("\n -G <int>   : GPU (default 0)");
   printf ("\n -t <int>   : Threads num ( default = OMP_NUM_THREADS if set, otherwise = cores num");
   printf ("\n -f <filename> : output data file");
+  printf ("\n -a : allocate grids on host in a contiguous memory block (default is row by row)");
   printf ("\n -v   : version ");
   printf ("\n -h   : help ");
   printf ("\n");
@@ -515,22 +518,6 @@ void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid) {
 }
 
 
-/////////////////////////// allocate_grid ////////////////////////////////////
-
-/* // UNUSED
-void allocate_grid(int nrows, int ncols, double *** grid){
-
-    int *a,i,j;
-    (*grid) =  (double **)    malloc ( sizeof(double *) * (nrows+2) );
-
-    for (i=0; i<nrows+2;i++) {
-        (*grid)[i] =  (double *)  malloc (  sizeof (double) * (ncols+2) ) ;
-        for (j=0;j<ncols+2;j++) {
-            (*grid)[i][j]=0;
-        }
-    }
-} */
-
 /////////////////////////// init_grid ////////////////////////////////////
 
 void init_grid(int nrows, int rmin, int rmax, int ncols, double ** grid, double prob){
@@ -543,19 +530,32 @@ void init_grid(int nrows, int rmin, int rmax, int ncols, double ** grid, double 
   if (rmin==1) rmin=0;
   if (rmax==nrows) rmax=nrows+1;
 
-  if (DEBUG == 1) printf("init-grid %d-%d %d %f\n",  rmin,rmax,ncols,prob);
+  if (DEBUG == 1) {
+    printf("init-grid %d-%d %d %f",  rmin,rmax,ncols,prob);
+    if (contig_malloc) printf("(contiguous)\n");
+    else printf("(row by row)\n");
+  }
 
+  if (contig_malloc) {
   // allocazione di un blocco di memoria contigua
-  //double * temp_pointer = (double*) malloc (sizeof(double)*(nrows+2)*(ncols+2));
+    double * temp_pointer = (double*) malloc (sizeof(double)*(nrows+2)*(ncols+2));
   // questo puntatore viene distrutto alla fine della funzione, ma tanto la memoria
   // e' gia' stata puntata dall'array di puntatori grid[nrows+2] .
   // Ora aggiusto i puntatori nell'array grid per riavere la situazione a cui sono abituato:
-  //for (i=0; i<nrows+2; i++) {
-  //  grid[i] =  temp_pointer + i*(ncols+2);
-  //}  
-  
+    for (i=0; i<nrows+2; i++) {
+      grid[i] =  temp_pointer + i*(ncols+2);
+    }
+  }
+  else
+  {
+    for (i=rmin; i<rmax+1;i++) {
+      // allocazione di array distinti
+      grid[i] =  (double *)  malloc ( sizeof (double) * (ncols+2) );
+    }
+  }
+
+  // inizializzazione
   for (i=rmin; i<rmax+1;i++) {
-    grid[i] =  (double *)  malloc ( sizeof (double) * (ncols+2) ); // allocazione di array distinti
     if (prob)
       for ( j=0;j<=ncols+1;j++)
         if ( rand_double() <prob ) grid[i][j]=1;
