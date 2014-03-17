@@ -26,7 +26,7 @@ fi
 
 
 # Allocazione riga per riga
-for DIM in $(echo 2000 4000 6000 8000 10000 12000 14000 16000)
+for DIM in $(echo 200 500 1000 1500 2000 4000 6000 8000 10000 12000 14000 16000)
 do
   CMD="./life_hpc2_$MYSUFFIX -r$DIM -c$DIM -n0 -s5 -d0"
   echo "# $CMD"
@@ -36,7 +36,7 @@ done
 echo ""
 
 # Allocazione contigua
-for DIM in $(echo 2000 4000 6000 8000 10000 12000 14000 16000)
+for DIM in $(echo 200 500 1000 1500 2000 4000 6000 8000 10000 12000 14000 16000)
 do
   CMD="./life_hpc2_$MYSUFFIX -r$DIM -c$DIM -n0 -s5 -d0 -a"
   echo "# $CMD"
