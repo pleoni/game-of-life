@@ -387,8 +387,8 @@ void compute_Borders(double ** grid, double ** next_grid) {
     for (i=rmin; i<=rmax; i++) {  // righe
       #pragma acc loop worker
       for (j=cmin; j<cmin_int; j++) { // bordo sinistro
-        #pragma ivdep
-        #pragma vector aligned
+        #pragma ivdep // parallelizzazione omp (ignore vector dependencies)
+        #pragma vector aligned // vettorizzazione - tutti i compilatori
         #pragma acc loop vector reduction(+: sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
