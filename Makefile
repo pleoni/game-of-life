@@ -16,7 +16,7 @@ UNLOADALL   = $(UNLOADPGI); $(UNLOADGNU); $(UNLOADINTEL)
 
 TESTFILE      = test_run.dat
 TESTREFERENCE = test_reference.dat
-TESTPARAMS    = -r100 -c100 -s1000 -n10 -d0
+TESTPARAMS    = -r100 -c100 -s1000 -n10 -d0 -t4 # -t ignored when omp disabled
 
 CC    = mpicc
 RUN   = mpirun

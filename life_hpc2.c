@@ -88,7 +88,7 @@ double *col_send_l, *col_send_r, *col_recv_l, *col_recv_r; //border buffers
 
 ////// omp + MPI //////
 
-int num_threads=1;  // default omp threads
+int num_threads=1;  // requested omp threads
 int omp_rank=0, omp_size=1; // actual omp threads
 
 int mpi_rank=0, mpi_size=0;
@@ -645,7 +645,7 @@ void init_GPU() {
 
 void log_initialize() {
 
-  if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", hostname, mpi_rank, mpi_size, num_threads, ncols,nrows,nsteps,datafile, DEBUG);
+  if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", hostname, mpi_rank, mpi_size, omp_size, ncols,nrows,nsteps,datafile, DEBUG);
   if (DEBUG==1) fprintf(stdout,"\nComp load: %d\n",ncomp);
   if (DEBUG==1) fprintf(stderr,"\n%s-%d ALLOCATE MEMORY  (%ld grid + %ld new_grid = %ld bytes ) \n", hostname,mpi_rank, datasize, datasize, datasize*2);
   if (DEBUG==1) fprintf(stderr,"%s-%d  %d iterations - Start timer\n",hostname ,mpi_rank, nsteps);
