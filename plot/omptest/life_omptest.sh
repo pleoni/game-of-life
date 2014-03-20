@@ -30,7 +30,9 @@ NCOMP=1000
 STEPS=10
 
 #export OMP_SCHEDULE="auto"
-echo OMP_SCHEDULE is $OMP_SCHEDULE >&2 # print to stderr
+echo OMP_SCHEDULE=$OMP_SCHEDULE >&2 # print to stderr
+export OMP_PROC_BIND=TRUE
+echo OMP_PROC_BIND=$OMP_PROC_BIND >&2
 
 ## Allocazione riga per riga
 #for T in {1..6 8 10 12 14 16}
