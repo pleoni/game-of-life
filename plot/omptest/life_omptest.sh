@@ -18,7 +18,7 @@ cd ~/game-of-life
 if [[ $(hostname) != *kepler* ]]
 then
   module load pgi openmpi/1.6.5--pgi--14.1
-  echo $PBS_NODEFILE > whereami.txt
+  cat $PBS_NODEFILE > whereami.txt
   MYSUFFIX=omppgi
 else
   MYSUFFIX=ompkep
