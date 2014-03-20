@@ -381,9 +381,10 @@ void compute_Borders(double ** grid, double ** next_grid) {
 
   // Compute IntBorders
   #pragma acc parallel num_gangs(100) vector_length(16) async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
+  #pragma omp parallel
   {
     #pragma acc loop gang
-    #pragma omp parallel for private(i,j,k)
+    #pragma omp for private(i,j,k)
     for (i=rmin; i<=rmax; i++) {  // righe
       #pragma acc loop worker
       for (j=cmin; j<cmin_int; j++) { // bordo sinistro
@@ -402,8 +403,8 @@ void compute_Borders(double ** grid, double ** next_grid) {
           next_grid[i][j] =  grid[i][j];
       }
     }
-    #pragma omp parallel for private(i,j,k)
-     #pragma acc loop gang
+    #pragma acc loop gang
+    #pragma omp for private(i,j,k)
     for (i=rmin; i<=rmax; i++) {  // righe
       #pragma acc loop worker
       for (j=cmax; j>cmax_int; j--) { // bordo destro
@@ -423,8 +424,8 @@ void compute_Borders(double ** grid, double ** next_grid) {
       }
     }
 
-    #pragma omp parallel for private(i,j,k)
     #pragma acc loop gang
+    #pragma omp for private(i,j,k)
     for (j=cmin_int; j<=cmax_int; j++) {  // colonne
      #pragma acc loop worker
       for (i=rmin; i<rmin_int; i++) {  // bordo superiore
@@ -470,9 +471,10 @@ void compute_Internals(double ** grid, double ** next_grid) {
 
   // Compute Internals
   #pragma acc parallel present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp]) reduction(+: sum) async(2) num_gangs(400) vector_length(16)
+  #pragma omp parallel
   {
     #pragma acc loop gang 
-    #pragma omp parallel for private(i,j,k)
+    #pragma omp for private(i,j,k)
     for (i=rmin_int; i<=rmax_int; i++) {  // righe
       #pragma acc loop workers 
       for (j=cmin_int; j<=cmax_int; j++) {  // colonne

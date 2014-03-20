@@ -25,12 +25,13 @@ else
 fi
 
 DIM=4000
+NCOMP=1000
 STEPS=5
 
 # Allocazione riga per riga
 for T in {1..16}
 do
-  CMD="./life_hpc2_$MYSUFFIX -r$DIM -c$DIM -n4000 -s$STEPS -d0 -t$T"
+  CMD="./life_hpc2_$MYSUFFIX -r$DIM -c$DIM -n$NCOMP -s$STEPS -d0 -t$T"
   echo "# $CMD"
   eval $CMD
 done
@@ -40,7 +41,7 @@ echo ""
 # Allocazione contigua
 for T in {1..16}
 do
-  CMD="./life_hpc2_$MYSUFFIX -r$DIM -c$DIM -n4000 -s$STEPS -d0 -t$T -a"
+  CMD="./life_hpc2_$MYSUFFIX -r$DIM -c$DIM -n$NCOMP -s$STEPS -d0 -t$T -a"
   echo "# $CMD"
   eval $CMD
 done
