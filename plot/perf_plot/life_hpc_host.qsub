@@ -19,7 +19,7 @@ for DIM in $(echo 17000 8000 4000 2000 1000 )
 do 
 for COMP in $(echo 1000 0)
 do
-CMD="mpirun -np $N ./life_hpc2_omppgi -t 16 -r $DIM -c $DIM -n $COMP -s 10 -d 0"
+CMD="mpirun -np $N ./life_hpc2_ompicc -t 16 -r $DIM -c $DIM -n $COMP -s 10 -d 0"
 echo "# $CMD"
 eval $CMD
 done
