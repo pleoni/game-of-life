@@ -2,7 +2,7 @@
 #PBS -j oe
 #PBS -N life_host_mpi
 #PBS -o life_hpc_host_mpi.out
-#PBS -l select=8:ncpus=16:mem=5gb
+#PBS -l select=8:ncpus=16:mem=5gb:cpuspeed=3Ghz
 #PBS -q parallel
 #PBS -A CON13_INFN
         
