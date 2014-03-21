@@ -63,13 +63,13 @@ ompmic:
 	export I_MPI_MIC=enable ; \
 	$(CC) $(MyO) $(PACKAGE).c -mmic -fopenmp -vec-report2 $(MyO) -o $(PACKAGE)_omp.mic"
 
-ompintel:
+ompicc:
 	bash -c "$(UNLOADGNU) ;  $(LOADINTEL) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompintel $(MyO) $(SIMD_INTEL) -fopenmp -vec-report2"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompicc $(MyO) $(SIMD_INTEL) -fopenmp -vec-report2"
 
-serintel: 
+sericc: 
 	bash -c "$(UNLOADGNU) ;  $(LOADINTEL) ; \
-	$(CC) $(PACKAGE).c $(SIMD_GNU) $(MyO) $(SIMD_INTEL) -o $(PACKAGE)_serintel"
+	$(CC) $(PACKAGE).c $(SIMD_GNU) $(MyO) $(SIMD_INTEL) -o $(PACKAGE)_sericc"
 
 acckep:
 	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=nvidia,cuda5.5,cc35 -Minfo=accel -lpgacc
