@@ -23,6 +23,9 @@ RUN   = mpirun
 KEPRUN = /opt/pgi/linux86-64/14.1/mpi/mpich/bin/mpirun
 RM    = rm -f
 MyO   = -O3
+SIMD_PGI  = -tp=sandybridge-64 -Mvect=simd:256
+SIMD_GNU  = -mavx
+SIMD_INTEL = -xavx
 
 all: pgi gnu mic kep
 
@@ -40,25 +43,33 @@ accpgi:
 
 omppgi: 
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_omppgi $(MyO) -mp=numa -fast -mp -Minfo=vec"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_omppgi $(MyO) $(SIMD_PGI) -mp=numa -fast -mp -Minfo=vec"
 
 serpgi: 
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c $(MyO) -o $(PACKAGE)_serpgi"
+	$(CC) $(PACKAGE).c $(MyO) $(SIMD_PGI) -o $(PACKAGE)_serpgi"
 
 ompgnu:
 	bash -c "$(UNLOADPGI) ;  $(LOADGNU) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompgnu $(MyO) -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompgnu $(MyO) $(SIMD_GNU) -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1"
 
 sergnu: 
 	bash -c "$(UNLOADPGI) ;  $(LOADGNU) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_sergnu"
+	$(CC) $(PACKAGE).c $(SIMD_GNU) $(MyO) -o $(PACKAGE)_sergnu"
 
 ompmic:
 	bash -c "$(UNLOADGNU) ;  $(LOADINTEL) ; \
 	source $(INTEL_HOME)/bin/compilervars.sh intel64 ; \
 	export I_MPI_MIC=enable ; \
-	$(CC) $(MyO) $(PACKAGE).c -mmic -fopenmp -vec-report2 -o $(PACKAGE)_omp.mic"
+	$(CC) $(MyO) $(PACKAGE).c -mmic -fopenmp -vec-report2 $(MyO) -o $(PACKAGE)_omp.mic"
+
+ompintel:
+	bash -c "$(UNLOADGNU) ;  $(LOADINTEL) ; \
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompintel $(MyO) $(SIMD_INTEL) -fopenmp -vec-report2"
+
+serintel: 
+	bash -c "$(UNLOADGNU) ;  $(LOADINTEL) ; \
+	$(CC) $(PACKAGE).c $(SIMD_GNU) $(MyO) $(SIMD_INTEL) -o $(PACKAGE)_serintel"
 
 acckep:
 	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=nvidia,cuda5.5,cc35 -Minfo=accel -lpgacc
