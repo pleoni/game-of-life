@@ -2,7 +2,7 @@
 #PBS -j oe
 #PBS -N life_host
 #PBS -o life_host.out
-#PBS -l select=1:ncpus=16:mem=5gb
+#PBS -l select=1:ncpus=16:mem=5gb:cpuspeed=3Ghz
 #PBS -q parallel
 #PBS -A CON13_INFN          
 module load pgi openmpi/1.6.5--pgi--14.1
