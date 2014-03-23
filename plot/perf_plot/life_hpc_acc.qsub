@@ -2,7 +2,7 @@
 #PBS -j oe
 #PBS -N life_acc
 #PBS -o life_acc.out
-#PBS -l select=1:ncpus=1:ngpus=1:mem=5gb
+#PBS -l select=1:ncpus=16:ngpus=1:mem=5gb
 #PBS -q parallel
 #PBS -A CON13_INFN          
 module load pgi openmpi/1.6.5--pgi--14.1
