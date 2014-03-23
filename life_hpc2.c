@@ -384,7 +384,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
   #pragma omp parallel
   {
     #pragma acc loop gang
-    #pragma omp for private(i,j,k,neighbors) // collapse(2) schedule(runtime)
+    #pragma omp for private(i,j,k,neighbors,sum) // collapse(2) // schedule(runtime)
     for (i=rmin; i<=rmax; i++) {  // righe
       #pragma acc loop worker
       for (j=cmin; j<cmin_int; j++) { // bordo sinistro
@@ -404,7 +404,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       }
     }
     #pragma acc loop gang
-    #pragma omp for private(i,j,k,neighbors) // collapse(2) schedule(runtime)
+    #pragma omp for private(i,j,k,neighbors,sum) // collapse(2) // schedule(runtime)
     for (i=rmin; i<=rmax; i++) {  // righe
       #pragma acc loop worker
       for (j=cmax; j>cmax_int; j--) { // bordo destro
@@ -425,7 +425,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
     }
 
     #pragma acc loop gang
-    #pragma omp for private(i,j,k,neighbors) // collapse(2) schedule(runtime)
+    #pragma omp for private(i,j,k,neighbors,sum) // collapse(2) // schedule(runtime)
     for (j=cmin_int; j<=cmax_int; j++) {  // colonne
       #pragma acc loop worker
       for (i=rmin; i<rmin_int; i++) {  // bordo superiore
@@ -445,7 +445,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       }
     }
     #pragma acc loop gang
-    #pragma omp for private(i,j,k,neighbors) // collapse(2) schedule(runtime)
+    #pragma omp for private(i,j,k,neighbors,sum) // collapse(2) // schedule(runtime)
     for (j=cmin_int; j<=cmax_int; j++) {  // colonne
       #pragma acc loop worker
       for (i=rmax; i>rmax_int; i--) {  // bordo inferiore
@@ -478,7 +478,7 @@ void compute_Internals(double ** grid, double ** next_grid) {
   #pragma omp parallel
   {
     #pragma acc loop gang 
-    #pragma omp for private(i,j,k,neighbors) // collapse(2) schedule(runtime)
+    #pragma omp for private(i,j,k,neighbors,sum) // collapse(2) // schedule(runtime)
     for (i=rmin_int; i<=rmax_int; i++) {  // righe
       #pragma acc loop workers 
       for (j=cmin_int; j<=cmax_int; j++) {  // colonne

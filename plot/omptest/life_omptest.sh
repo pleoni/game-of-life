@@ -14,7 +14,7 @@
 ## #PBS -l walltime=0:30:00
 
 #cd /eurora/home/userexternal/ralfieri/life/openacc/game-of-life
-cd ~/game-of-life
+#cd ~/game-of-life
 
 if [[ $(hostname) != *kepler* ]]
 then
@@ -25,29 +25,42 @@ else
   MYSUFFIX=ompkep
 fi
 
-DIM=4000
-NCOMP=1000
-STEPS=10
+# make a temporary copy of the executable
+TEMPFILE=$(mktemp)
+cp ~/game-of-life/life_hpc2_$MYSUFFIX $TEMPFILE
+chmod a+x $TEMPFILE
 
 #export OMP_SCHEDULE="auto"
 echo OMP_SCHEDULE=$OMP_SCHEDULE >&2 # print to stderr
 export OMP_PROC_BIND=TRUE
 echo OMP_PROC_BIND=$OMP_PROC_BIND >&2
 
-## Allocazione riga per riga
-#for T in {1..6 8 10 12 14 16}
-#do
-#  CMD="./life_hpc2_$MYSUFFIX -r$DIM -c$DIM -n$NCOMP -s$STEPS -d0 -t$T"
-#  echo "# $CMD"
-#  eval $CMD
-#done
-#
-#echo ""
+DIM=4000
+NCOMP=1000
+STEPS=10
+echo DIM=$DIM, NCOMP=$NCOMP, STEPS=$STEPS >&2
 
 # Allocazione contigua
 for T in {1..16}
 do
-  CMD="./life_hpc2_$MYSUFFIX -r$DIM -c$DIM -n$NCOMP -s$STEPS -d0 -t$T -a"
+  CMD="$TEMPFILE -r$DIM -c$DIM -n$NCOMP -s$STEPS -d0 -t$T -a"
   echo "# $CMD"
   eval $CMD
 done
+
+
+DIM=4000
+NCOMP=0
+STEPS=100
+echo DIM=$DIM, NCOMP=$NCOMP, STEPS=$STEPS >&2
+
+# Allocazione contigua
+for T in {1..16}
+do
+  CMD="$TEMPFILE -r$DIM -c$DIM -n$NCOMP -s$STEPS -d0 -t$T -a"
+  echo "# $CMD"
+  eval $CMD
+done
+
+# delete the temporary file
+rm $TEMPFILE
