@@ -43,7 +43,7 @@ accpgi:
 
 omppgi: 
 	bash -c "$(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_omppgi $(MyO) $(SIMD_PGI) -mp=numa -fast -mp -Minfo=vec"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_omppgi $(MyO) $(SIMD_PGI) -mp=numa -fast -Minfo=vec,mp"
 
 serpgi: 
 	bash -c "$(LOADPGI) ; \
@@ -75,7 +75,7 @@ acckep:
 	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=nvidia,cuda5.5,cc35 -Minfo=accel -lpgacc
 
 ompkep:
-	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_ompkep $(MyO) -mp=numa -fast -mp -Minfo=vec
+	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_ompkep $(MyO) -mp=numa -fast -Minfo=vec,mp
 
 
 clean: ; $(RM) $(PACKAGE)_accpgi  $(PACKAGE)_omppgi $(PACKAGE)_serpgi $(PACKAGE)_ompgnu $(PACKAGE)_sergnu $(PACKAGE)_omp.mic $(PACKAGE)_acckep $(PACKAGE)_ompkep $(TESTFILE) $(TESTFILE).txt
