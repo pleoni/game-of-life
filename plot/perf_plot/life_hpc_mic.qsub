@@ -2,7 +2,7 @@
 #PBS -j oe
 #PBS -N life_mic
 #PBS -o life_mic.out
-#PBS -l select=1:ncpus=1:nmics=1:mem=5gb
+#PBS -l select=1:ncpus=16:nmics=1:mem=5gb
 #PBS -q parallel
 #PBS -A CON13_INFN          
 
