@@ -149,8 +149,6 @@ int main(int argc, char ** argv) {
   #ifdef _OPENMP
   omp_set_num_threads(num_threads);  // default is num_threads=1, unless the user provided a different value
   #endif
-  omp_rank = omp_get_thread_num();
-  omp_size = omp_get_num_threads();
 
   /* Initialize */
 
@@ -183,46 +181,64 @@ int main(int argc, char ** argv) {
   	init_GPU();
   #endif
 
-  #pragma warning disable 161 //disable warnings in icc compilation (due to lack of openacc support)
-  
-  #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2],sum)
-  // Inizio regione "data": con "copy" e' implicita la copyout alla fine, quindi non serve rifare l'update host della grid dopo il loop.
-  for(k=0; k<nsteps; k++) {    /* MAIN LOOP */
+  #pragma warning disable 161  //disable warnings in icc compilation (due to lack of openacc support)
 
-    if (mpi_size>1)  RecvBuffers_to_ExtBorders(grid);
-
-    compute_Borders(grid,next_grid);
-
-    if (mpi_size>1)  IntBorders_to_SendBuffers(grid);
-
-    #pragma acc wait(1)  // ---------------------------------
-
-    compute_Internals(grid,next_grid);  // seconda parte
-
-    #pragma acc update async(4) host(grid[0:nrows+2][0:ncols+2])
-
-    copy_borders_top_bottom(next_grid);  // copia direttamente sulla griglia
-
-    if (mpi_size==1) {
-      copy_borders_left_right(next_grid);  // copia direttamente sulla griglia
-    } else {
-      #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2])
-      mpi_sendrecv_buffers();
-      #pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2])
-    }
-
-    // Se c'e' un solo rank MPI, a questo punto la griglia next_grid sul device e' completa e coerente al passo n+1, comprese le celle ghost.
-    // Se invece ci sono piu' rank, ho caricato i buffer delle celle ghost sul device, ma verranno copiate nella griglia solo all'inizio del prossimo ciclo.
-
-    #pragma acc wait(2,3)
-
-    #pragma acc wait(4)
+  #pragma omp parallel private(k,omp_rank) firstprivate(rmin,rmax,cmin,cmax,rmin_int,rmax_int,cmin_int,cmax_int,ncomp,A,B) \
+                       // firstprivate(ncols,nrows,DEBUG,nsteps) shared(grid,next_grid,omp_size,mpi_size) default(none)
+  // Inizio regione "parallel" per OpenMP
+  {
+    omp_rank = omp_get_thread_num();
+    #pragma omp master
+    { omp_size = omp_get_num_threads(); }
     
-    if (DEBUG==2) do_display(1, nrows, 1, ncols,  grid);
+    #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2],sum)
+    // Inizio regione "data": con "copy" e' implicita la copyout alla fine, quindi non serve rifare l'update host della grid dopo il loop.
+    for(k=0; k<nsteps; k++) {    /* MAIN LOOP */ // -----------------------------
 
-    swap_grids();
+      #pragma omp master
+      { if (mpi_size>1)  RecvBuffers_to_ExtBorders(grid); }
+      #pragma omp barrier
+      
+      compute_Borders(grid,next_grid); // omp: all threads execute this function - implicit barrier
+      
+      #pragma omp master
+      { if (mpi_size>1)  IntBorders_to_SendBuffers(grid); }
+      #pragma omp barrier
+      
+      #pragma acc wait(1)  // ---------------------------------
+
+      compute_Internals(grid,next_grid);  // seconda parte // omp: all threads execute this function - implicit barrier
+
+      #pragma acc update async(4) host(grid[0:nrows+2][0:ncols+2])
+
+      #pragma omp master
+      {
+        copy_borders_top_bottom(next_grid);  // copia direttamente sulla griglia
+
+        if (mpi_size==1) {
+          copy_borders_left_right(next_grid);  // copia direttamente sulla griglia
+        } else {
+          #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2])
+          mpi_sendrecv_buffers();
+          #pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2])
+        }
+
+        // Se c'e' un solo rank MPI, a questo punto la griglia next_grid sul device e' completa e coerente al passo n+1, comprese le celle ghost.
+        // Se invece ci sono piu' rank, ho caricato i buffer delle celle ghost sul device, ma verranno copiate nella griglia solo all'inizio del prossimo ciclo.
+
+        #pragma acc wait(2,3)
+
+        #pragma acc wait(4)
+        
+        if (DEBUG==2) do_display(1, nrows, 1, ncols,  grid);
+
+        swap_grids();
+      } // end omp master - no implied barrier
+      // #pragma omp barrier // non necessaria
+    
+    } // end MAIN LOOP  // end openacc data region - implicit copyout  // -------
   
-  } // end openacc data region - implicit copyout
+  } // end omp parallel region - implicit barrier & flush
 
   gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
 
@@ -381,10 +397,10 @@ void compute_Borders(double ** grid, double ** next_grid) {
 
   // Compute IntBorders
   #pragma acc kernels async(1) present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp])
-  #pragma omp parallel
+  //#pragma omp parallel
   {
     #pragma acc loop gang gang(100) independent
-    #pragma omp for private(i,j,k,neighbors,sum) // collapse(2) // schedule(runtime)
+    #pragma omp for private(i,j,k,neighbors,sum) schedule(static) // collapse(2)
     for (i=rmin; i<=rmax; i++) {  // righe
       #pragma acc loop worker independent
       for (j=cmin; j<cmin_int; j++) { // bordo sinistro
@@ -404,7 +420,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       }
     }
     #pragma acc loop gang(100) independent
-    #pragma omp for private(i,j,k,neighbors,sum) // collapse(2) // schedule(runtime)
+    #pragma omp for private(i,j,k,neighbors,sum) schedule(static) // collapse(2)
     for (i=rmin; i<=rmax; i++) {  // righe
       #pragma acc loop worker independent
       for (j=cmax; j>cmax_int; j--) { // bordo destro
@@ -425,7 +441,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
     }
 
     #pragma acc loop gang(100) independent
-    #pragma omp for private(i,j,k,neighbors,sum) // collapse(2) // schedule(runtime)
+    #pragma omp for private(i,j,k,neighbors,sum) schedule(static) // collapse(2)
     for (j=cmin_int; j<=cmax_int; j++) {  // colonne
       #pragma acc loop worker independent
       for (i=rmin; i<rmin_int; i++) {  // bordo superiore
@@ -445,7 +461,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       }
     }
     #pragma acc loop gang(100) independent
-    #pragma omp for private(i,j,k,neighbors,sum) // collapse(2) // schedule(runtime)
+    #pragma omp for private(i,j,k,neighbors,sum) schedule(static) // collapse(2)
     for (j=cmin_int; j<=cmax_int; j++) {  // colonne
       #pragma acc loop worker independent
       for (i=rmax; i>rmax_int; i--) {  // bordo inferiore
@@ -475,10 +491,10 @@ void compute_Internals(double ** grid, double ** next_grid) {
 
   // Compute Internals
   #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp]) async(2)
-  #pragma omp parallel
+  //#pragma omp parallel
   {
     #pragma acc loop gang(100) independent
-    #pragma omp for private(i,j,k,neighbors,sum) // collapse(2) // schedule(runtime)
+    #pragma omp for private(i,j,k,neighbors,sum) schedule(static) // collapse(2)
     for (i=rmin_int; i<=rmax_int; i++) {  // righe
       #pragma acc loop workers independent
       for (j=cmin_int; j<=cmax_int; j++) {  // colonne
@@ -508,7 +524,7 @@ void compute_Internals(double ** grid, double ** next_grid) {
 void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid) {
 
   int i,j;
-  int delay=200000;       /* usec sleep in do_display */
+  int delay=500000;       /* usec sleep in do_display */
 
   clearscreen();
   for(i=cmin;i<=cmax;i++) printf("-"); printf ("\n");
@@ -641,7 +657,7 @@ void init_GPU() {
 	if (DEBUG==1) fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
 
 	if(mygpu != myrealgpu) {
-		if (DEBUG==1) fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
+		/*if (DEBUG==1)*/ fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
 		exit(1);
 	}
 }
