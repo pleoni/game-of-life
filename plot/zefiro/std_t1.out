@@ -1,0 +1,101 @@
+Sender: LSF System <lsfadmin@o2wn13>
+Subject: Job 125716: <life_mpi> in cluster <INFN-HPC> Done
+
+Job <life_mpi> was submitted from host <localui3> by user <roberto.alfieri> in cluster <INFN-HPC>.
+Job was executed on host(s) <1*o2wn13>, in queue <longparallel>, as user <roberto.alfieri> in cluster <INFN-HPC>.
+                            <1*o2wn2>
+</home/users/roberto.alfieri> was used as the home directory.
+</home/users/roberto.alfieri/git/game-of-life/plot/zefiro> was used as the working directory.
+Started at Mon Mar 24 16:58:28 2014
+Results reported at Mon Mar 24 17:06:33 2014
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+
+### bsub < life_mpi.bsub
+
+#BSUB -a openmpi
+#BSUB -J life_mpi
+####BSUB -q neparallel
+#BSUB -q longparallel
+#BSUB -e std_t1.err
+#BSUB -o std_t1.out 
+#BSUB -n 2           # 2 js = 1 Whole node 
+###BSUB  -W 10080      # 1 week
+###BSUB -M  335544320  # 320GB
+
+cd ~/git/game-of-life/plot/zefiro
+
+for N in $(echo 8 4 1)
+do
+for DIM in $(echo 17000 8000 4000 2000 1000 )
+do 
+for COMP in $(echo 1000 0)
+do
+#CMD="mpirun -np $N ../../life_hpc2_ompgnu  -t 16 -r $DIM -c $DIM -n $COMP -s 10 -d 0"
+CMD="mpirun -np $N ../../life_hpc2_ompgnu  -r $DIM -c $DIM -n $COMP -s 10 -d 0"
+echo "# $CMD"
+eval $CMD
+done
+done
+done
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :               2021.04 sec.
+    Max Memory :             36172 MB
+    Average Memory :         10217.00 MB
+    Total Requested Memory : -
+    Delta Memory :           -
+    (Delta: the difference between total requested memory and actual max usage.)
+    Max Swap :               37884 MB
+
+    Max Processes :          13
+    Max Threads :            30
+
+The output (if any) follows:
+
+# mpirun -np 8 ../../life_hpc2_ompgnu  -r 17000 -c 17000 -n 1000 -s 10 -d 0
+# mpirun -np 8 ../../life_hpc2_ompgnu  -r 17000 -c 17000 -n 0 -s 10 -d 0
+# mpirun -np 8 ../../life_hpc2_ompgnu  -r 8000 -c 8000 -n 1000 -s 10 -d 0
+# mpirun -np 8 ../../life_hpc2_ompgnu  -r 8000 -c 8000 -n 0 -s 10 -d 0
+# mpirun -np 8 ../../life_hpc2_ompgnu  -r 4000 -c 4000 -n 1000 -s 10 -d 0
+# mpirun -np 8 ../../life_hpc2_ompgnu  -r 4000 -c 4000 -n 0 -s 10 -d 0
+# mpirun -np 8 ../../life_hpc2_ompgnu  -r 2000 -c 2000 -n 1000 -s 10 -d 0
+# mpirun -np 8 ../../life_hpc2_ompgnu  -r 2000 -c 2000 -n 0 -s 10 -d 0
+# mpirun -np 8 ../../life_hpc2_ompgnu  -r 1000 -c 1000 -n 1000 -s 10 -d 0
+# mpirun -np 8 ../../life_hpc2_ompgnu  -r 1000 -c 1000 -n 0 -s 10 -d 0
+# mpirun -np 4 ../../life_hpc2_ompgnu  -r 17000 -c 17000 -n 1000 -s 10 -d 0
+# mpirun -np 4 ../../life_hpc2_ompgnu  -r 17000 -c 17000 -n 0 -s 10 -d 0
+# mpirun -np 4 ../../life_hpc2_ompgnu  -r 8000 -c 8000 -n 1000 -s 10 -d 0
+# mpirun -np 4 ../../life_hpc2_ompgnu  -r 8000 -c 8000 -n 0 -s 10 -d 0
+# mpirun -np 4 ../../life_hpc2_ompgnu  -r 4000 -c 4000 -n 1000 -s 10 -d 0
+# mpirun -np 4 ../../life_hpc2_ompgnu  -r 4000 -c 4000 -n 0 -s 10 -d 0
+# mpirun -np 4 ../../life_hpc2_ompgnu  -r 2000 -c 2000 -n 1000 -s 10 -d 0
+# mpirun -np 4 ../../life_hpc2_ompgnu  -r 2000 -c 2000 -n 0 -s 10 -d 0
+# mpirun -np 4 ../../life_hpc2_ompgnu  -r 1000 -c 1000 -n 1000 -s 10 -d 0
+# mpirun -np 4 ../../life_hpc2_ompgnu  -r 1000 -c 1000 -n 0 -s 10 -d 0
+# mpirun -np 1 ../../life_hpc2_ompgnu  -r 17000 -c 17000 -n 1000 -s 10 -d 0
+# mpirun -np 1 ../../life_hpc2_ompgnu  -r 17000 -c 17000 -n 0 -s 10 -d 0
+# mpirun -np 1 ../../life_hpc2_ompgnu  -r 8000 -c 8000 -n 1000 -s 10 -d 0
+# mpirun -np 1 ../../life_hpc2_ompgnu  -r 8000 -c 8000 -n 0 -s 10 -d 0
+# mpirun -np 1 ../../life_hpc2_ompgnu  -r 4000 -c 4000 -n 1000 -s 10 -d 0
+# mpirun -np 1 ../../life_hpc2_ompgnu  -r 4000 -c 4000 -n 0 -s 10 -d 0
+# mpirun -np 1 ../../life_hpc2_ompgnu  -r 2000 -c 2000 -n 1000 -s 10 -d 0
+# mpirun -np 1 ../../life_hpc2_ompgnu  -r 2000 -c 2000 -n 0 -s 10 -d 0
+# mpirun -np 1 ../../life_hpc2_ompgnu  -r 1000 -c 1000 -n 1000 -s 10 -d 0
+# mpirun -np 1 ../../life_hpc2_ompgnu  -r 1000 -c 1000 -n 0 -s 10 -d 0
+
+
+PS:
+
+Read file <std_t1.err> for stderr output of this job.
+

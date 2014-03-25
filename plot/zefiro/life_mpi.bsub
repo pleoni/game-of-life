@@ -1,0 +1,34 @@
+#!/bin/bash
+
+### bsub < life_mpi.bsub
+
+#BSUB -a openmpi
+#BSUB -J life_mpi
+#### BSUB -q neparallel
+#### BSUB -q longparallel
+#BSUB -q longDebug    # max 30 min.
+#BSUB -e std_ldebug.err
+#BSUB -o std_ldebug.out 
+#BSUB -n 2                  # 2 js = 1 Whole node 
+#BSUB -R "span[ptile=2]"    # 2 js per node 
+###BSUB  -W 10080      # 1 week
+###BSUB -M  335544320  # 320GB
+
+echo $LSB_MCPU_HOSTS # Job slot list
+
+cd ~/git/game-of-life/plot/zefiro
+
+for N in $(echo 8 4 1)
+do
+for DIM in $(echo 17000 8000 4000 2000 1000 )
+do 
+for COMP in $(echo 1000 0)
+do
+#CMD="mpirun -np $N ../../life_hpc2_ompgnu  -t 16 -r $DIM -c $DIM -n $COMP -s 10 -d 0"
+CMD="mpirun -np $N ../../life_hpc2_ompgnu  -r $DIM -c $DIM -n $COMP -s 10 -d 0"
+echo "# $CMD"
+eval $CMD
+done
+done
+done
+
