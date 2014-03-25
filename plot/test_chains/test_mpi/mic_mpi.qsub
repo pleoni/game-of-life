@@ -12,9 +12,9 @@
 ##MIC-MPI
 #PBS -l select=8:ncpus=1:nmics=2:mem=5gb
 ##HOST
-##PBS -l select=1:ncpus=16:mem=5gb:cpuspeed=2Ghz
+##PBS -l select=1:ncpus=16:mem=5gb:cpuspeed=2GHz
 ##HOST-MPI
-##PBS -l select=8:ncpus=16:mem=5gb:cpuspeed=2Ghz
+##PBS -l select=8:ncpus=16:mem=5gb:cpuspeed=2GHz
 
 if [[ $type == "acc" ]]
 then	
