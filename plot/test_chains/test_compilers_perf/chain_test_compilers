@@ -1,0 +1,9 @@
+#!/bin/bash
+
+FIRST=$(qsub -v type=host-icc -o life_host_icc.out host.qsub)
+echo $FIRST
+SECOND=$(qsub -W depend=afterany:$FIRST -v type=host-gnu -o life_host_gnu.out host.qsub)
+echo $SECOND
+THIRD=$(qsub -W depend=afterany:$SECOND -v type=host-pgi -o life_host_pgi.out host.qsub)
+echo $THIRD
+
