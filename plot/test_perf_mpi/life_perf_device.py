@@ -3,14 +3,14 @@ from numpy import *
 import sys
 import datetime
 
-datafile1="life_acc.out"
-datafile2="life_host.out"
-datafile3="life_mic.out"
+datafile1="life_acc_perf.out"
+datafile2="life_host_perf.out"
+datafile3="life_mic_perf.out"
 
 if len(sys.argv) > 1:
     datafile=sys.argv[1]
 
-plotfile="dev_perf_eurora.png"
+plotfile="device_perf_eurora.png"
 data1 = loadtxt(datafile1)
 data2 = loadtxt(datafile2)
 data3 = loadtxt(datafile3)

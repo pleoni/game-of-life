@@ -1,0 +1,9 @@
+#!/bin/bash
+
+FIRST=$(qsub -v type=acc-mpi -o life_acc_mpi.out acc_mpi.qsub)
+echo $FIRST
+SECOND=$(qsub -W depend=afterany:$FIRST -v type=host-icc-mpi -o life_host_mpi.out host_mpi.qsub)
+echo $SECOND
+THIRD=$(qsub -W depend=afterany:$SECOND -v type=mic-mpi -o life_mic_mpi.out mic_mpi.qsub)
+echo $THIRD
+

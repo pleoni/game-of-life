@@ -3,7 +3,7 @@ from numpy import *
 import sys
 import datetime
 
-datafile="life_hpc_acc_mpi.out"
+datafile="life_acc_mpi.out"
 if len(sys.argv) > 1:
     datafile=sys.argv[1]
 

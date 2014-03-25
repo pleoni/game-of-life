@@ -3,7 +3,7 @@ from numpy import *
 import sys
 import datetime
 
-datafile="life_hpc_mic_mpi.out"
+datafile="life_host_mpi.out"
 if len(sys.argv) > 1:
     datafile=sys.argv[1]
 
@@ -38,7 +38,7 @@ M1C100  = data[where((data[:,0]==1) & (data[:,5]==100)  ),:][0] # mpi 1 - Comp 1
 M1C10   = data[where((data[:,0]==1) & (data[:,5]==10)   ),:][0] # mpi 1 - Comp 10
 M1C0    = data[where((data[:,0]==1) & (data[:,5]==0)    ),:][0] # mpi 1 - comp 0
 
-top.set_title(str(today) + ' life_hpc_mic_mpi on eurora - NCOMP=1000')
+top.set_title(str(today) + ' life_hpc_host_mpi on eurora - NCOMP=1000')
 top.grid()
 top.set_xlabel('Lattice Size')
 top.set_ylabel('time')
@@ -52,7 +52,7 @@ top.legend(('MPI-8','MPI-4','MPI-1'), loc = 'upper left', shadow = False, prop={
 #############  BOTTOM 
 
 
-bottom.set_title(str(today) + ' life_hpc_mic_mpi on eurora - NCOMP=0')
+bottom.set_title(str(today) + ' life_hpc_host_mpi on eurora - NCOMP=0')
 bottom.grid()
 bottom.set_xlabel('Lattice size')
 bottom.set_ylabel('time')
