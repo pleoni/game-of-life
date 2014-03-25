@@ -27,7 +27,7 @@ SIMD_PGI  = -tp=sandybridge-64 -Mvect=simd:256
 SIMD_GNU  = -mavx
 SIMD_INTEL = -xavx
 
-all: pgi gnu icc mic kep
+all: pgi gnu icc mic #kep
 
 pgi: accpgi omppgi serpgi
 
