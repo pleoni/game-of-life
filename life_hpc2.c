@@ -400,7 +400,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
   //#pragma omp parallel
   {
     #pragma acc loop gang gang(100) independent
-    #pragma omp for private(i,j,k,neighbors,sum) schedule(static) // collapse(2)
+    #pragma omp for private(i,j,k,neighbors) reduction(+:sum) schedule(static) // collapse(2)
     for (i=rmin; i<=rmax; i++) {  // righe
       #pragma acc loop worker independent
       for (j=cmin; j<cmin_int; j++) { // bordo sinistro
@@ -420,7 +420,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       }
     }
     #pragma acc loop gang(100) independent
-    #pragma omp for private(i,j,k,neighbors,sum) schedule(static) // collapse(2)
+    #pragma omp for private(i,j,k,neighbors) reduction(+:sum) schedule(static) // collapse(2)
     for (i=rmin; i<=rmax; i++) {  // righe
       #pragma acc loop worker independent
       for (j=cmax; j>cmax_int; j--) { // bordo destro
@@ -441,7 +441,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
     }
 
     #pragma acc loop gang(100) independent
-    #pragma omp for private(i,j,k,neighbors,sum) schedule(static) // collapse(2)
+    #pragma omp for private(i,j,k,neighbors) reduction(+:sum) schedule(static) // collapse(2)
     for (j=cmin_int; j<=cmax_int; j++) {  // colonne
       #pragma acc loop worker independent
       for (i=rmin; i<rmin_int; i++) {  // bordo superiore
@@ -461,7 +461,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       }
     }
     #pragma acc loop gang(100) independent
-    #pragma omp for private(i,j,k,neighbors,sum) schedule(static) // collapse(2)
+    #pragma omp for private(i,j,k,neighbors) reduction(+:sum) schedule(static) // collapse(2)
     for (j=cmin_int; j<=cmax_int; j++) {  // colonne
       #pragma acc loop worker independent
       for (i=rmax; i>rmax_int; i--) {  // bordo inferiore
@@ -494,7 +494,7 @@ void compute_Internals(double ** grid, double ** next_grid) {
   //#pragma omp parallel
   {
     #pragma acc loop gang(100) independent
-    #pragma omp for private(i,j,k,neighbors,sum) schedule(static) // collapse(2)
+    #pragma omp for private(i,j,k,neighbors) reduction(+:sum) schedule(static) // collapse(2)
     for (i=rmin_int; i<=rmax_int; i++) {  // righe
       #pragma acc loop workers independent
       for (j=cmin_int; j<=cmax_int; j++) {  // colonne
