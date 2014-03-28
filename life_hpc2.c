@@ -500,7 +500,7 @@ void compute_Internals(double ** grid, double ** next_grid) {
       for (j=cmin_int; j<=cmax_int; j++) {  // colonne
         #pragma ivdep
         #pragma vector aligned
-        #pragma acc loop vector(16) independent private(sum)
+        #pragma acc loop vector(16) reduction(+: sum) independent private(sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
