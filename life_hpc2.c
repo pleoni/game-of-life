@@ -63,6 +63,7 @@ void init_GPU();
 
 int mygpu=0; //default GPU
 int contig_malloc=0;
+int mycalc=1;
 
 int nsteps=1000;       //!< Number of Steps
 int ncols=80;          //!< Number of Columns
@@ -201,7 +202,7 @@ int main(int argc, char ** argv) {
       
       gettimeofday(&tempo,0);  ta_calc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA_CALC
 
-      compute_Borders(grid,next_grid); // omp: all threads execute this function - implicit barrier
+      if (mycalc) compute_Borders(grid,next_grid); // omp: all threads execute this function - implicit barrier
       
       #pragma omp master
       { if (mpi_size>1)  IntBorders_to_SendBuffers(grid); }
@@ -209,7 +210,7 @@ int main(int argc, char ** argv) {
       
       #pragma acc wait(1)  // ---------------------------------
 
-      compute_Internals(grid,next_grid);  // seconda parte // omp: all threads execute this function - implicit barrier
+      if (mycalc) compute_Internals(grid,next_grid);  // seconda parte // omp: all threads execute this function - implicit barrier
 
       gettimeofday(&tempo,0);  tb_calc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB_CALC
 
@@ -318,10 +319,11 @@ void mpi_sendrecv_buffers() {
 void options(int argc, char * argv[]) {
 
   int i;
-  while ( (i = getopt(argc, argv, "W:vc:r:s:d:ht:f:C:n:G:a")) != -1) {
+  while ( (i = getopt(argc, argv, "W:vc:r:s:d:ht:f:C:n:G:a:x")) != -1) {
     switch (i) {
     case 'c':  ncols       = strtol(optarg, NULL, 10);  break;
     case 'G':  mygpu       = strtol(optarg, NULL, 10);  break;
+    case 'x':  mycalc = 0;				break;
     case 'r':  nrows       = strtol(optarg, NULL, 10);  break;
     case 's':  nsteps      = strtol(optarg, NULL, 10);  break;
     case 'n':  ncomp       = strtol(optarg, NULL, 10);  break;
@@ -345,11 +347,12 @@ void usage(char * argv[])  {
   printf ("\n%s [-c ncols] [-r nrows] [-t num_thr] [-s nsteps] [-G ngpu] [-d debug] [-v] [-h]",argv[0]);
   printf ("\n -d <0|1|2> : <no output | debug info (default) | display interactively> ");
   printf ("\n -s <int>   : steps  (step num. default=1000)");
-  printf ("\n -n <int>   : Computation load  (default=1000)");
+  printf ("\n -n <int>   : computation load  (default=1000)");
   printf ("\n -G <int>   : GPU (default 0)");
-  printf ("\n -t <int>   : Threads num ( default = OMP_NUM_THREADS if set, otherwise = cores num");
+  printf ("\n -t <int>   : threads num ( default = OMP_NUM_THREADS if set, otherwise = cores num");
   printf ("\n -f <filename> : output data file");
   printf ("\n -a : allocate grids on host in a contiguous memory block (default is row by row)");
+  printf ("\n -x : disable all computation. Useful for communication test");
   printf ("\n -v   : version ");
   printf ("\n -h   : help ");
   printf ("\n");
