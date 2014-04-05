@@ -42,7 +42,7 @@ top.set_ylabel('time')
 #top.legend()
 
 top.plot(ACC_C1000[:,3],ACC_C1000[:,8],'-xr',HOST_C1000[:,3],HOST_C1000[:,8],'-xg',MIC_C1000[:,3],MIC_C1000[:,8],'-xc');
-top.legend(('KEP20','HOST','MIC'), loc = 'upper left', shadow = False, prop={'size':9})
+top.legend(('KEP20','HOST-icc','MIC'), loc = 'upper left', shadow = False, prop={'size':9})
 
 
 #############  BOTTOM 
@@ -54,7 +54,7 @@ bottom.set_xlabel('Lattice size')
 bottom.set_ylabel('time')
 
 bottom.plot(ACC_C0[:,3],ACC_C0[:,8],'-xr',HOST_C0[:,3],HOST_C0[:,8],'-xg',MIC_C0[:,3],MIC_C0[:,8],'-xc');
-bottom.legend(('KEP20','HOST','MIC'), loc = 'upper left', shadow = False, prop={'size':9})
+bottom.legend(('KEP20','HOST-icc','MIC'), loc = 'upper left', shadow = False, prop={'size':9})
 
 
 plt.subplots_adjust(hspace=0.5)
