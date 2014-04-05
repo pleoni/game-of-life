@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2014.03.23";
+char version[]="2014.04.05";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -55,7 +55,7 @@ void copy_borders_top_bottom(double ** grid);
 void copy_borders_left_right(double ** grid);
 void log_initialize();
 void log_start_main_loop(double ta, double tb);
-void log_finalize(double ta, double tb, double tc);
+void log_finalize(double ta, double tb, double tc, double ta_calc, double tb_calc);
 
 void init_GPU();
 
@@ -105,7 +105,7 @@ MPI_Status  status[4];
 
 int main(int argc, char ** argv) {
 
-  double ta, tb, tc;
+  double ta, tb, tc, ta_calc, tb_calc;
   struct timeval tempo ;
 
   options(argc, argv);         /* optarg management */
@@ -199,6 +199,8 @@ int main(int argc, char ** argv) {
       { if (mpi_size>1)  RecvBuffers_to_ExtBorders(grid); }
       #pragma omp barrier
       
+      gettimeofday(&tempo,0);  ta_calc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA_CALC
+
       compute_Borders(grid,next_grid); // omp: all threads execute this function - implicit barrier
       
       #pragma omp master
@@ -209,7 +211,11 @@ int main(int argc, char ** argv) {
 
       compute_Internals(grid,next_grid);  // seconda parte // omp: all threads execute this function - implicit barrier
 
-      #pragma acc update async(4) host(grid[0:nrows+2][0:ncols+2])
+      gettimeofday(&tempo,0);  tb_calc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB_CALC
+
+      if (DEBUG==2) {
+      	#pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
+	}
 
       #pragma omp master
       {
@@ -225,14 +231,18 @@ int main(int argc, char ** argv) {
 
         // Se c'e' un solo rank MPI, a questo punto la griglia next_grid sul device e' completa e coerente al passo n+1, comprese le celle ghost.
         // Se invece ci sono piu' rank, ho caricato i buffer delle celle ghost sul device, ma verranno copiate nella griglia solo all'inizio del prossimo ciclo.
+	
 
-        #pragma acc wait(2,3)
+	#pragma acc wait(3) //wait for copy_borders
 
-        #pragma acc wait(4)
-        
+        //#pragma acc wait(2) //wait for compute_internals - slow if this clause is enabled, however output is correct if disabled
+
+        #pragma acc wait(4) //wait for update host
+
         if (DEBUG==2) do_display(1, nrows, 1, ncols,  grid);
 
         swap_grids();
+
       } // end omp master - no implied barrier
       // #pragma omp barrier // non necessaria
     
@@ -242,7 +252,7 @@ int main(int argc, char ** argv) {
 
   gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
 
-  log_finalize(ta,tb,tc);
+  log_finalize(ta,tb,tc, ta_calc, tb_calc);
 
   if (mpi_rank==0 && strcmp(datafile,"")) {
     save_data(datafile);
@@ -447,7 +457,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       for (i=rmin; i<rmin_int; i++) {  // bordo superiore
         #pragma ivdep
         #pragma vector aligned
-        #pragma acc loop vector(16) reduction(+: sum) independent private(sum)
+        #pragma acc loop vector(16) independent private(sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
@@ -681,11 +691,14 @@ void log_start_main_loop(double ta, double tb) {
 
 }
 
-void log_finalize(double ta, double tb, double tc) {
+void log_finalize(double ta, double tb, double tc, double ta_calc, double tb_calc) {
 
-  if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STOP\n", hostname,mpi_rank,omp_rank,omp_size);
+  if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STOP\n\n", hostname,mpi_rank,omp_rank,omp_size);
 
-  if (DEBUG >0) fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tc-ta);
+  if (DEBUG >0) {
+	fprintf(stderr,"Computation time of a single step  - %f sec  \n" , tb_calc-ta_calc);
+	fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tc-ta);
+	}
 
   if (DEBUG==0) {
     if (mpi_rank==0)
