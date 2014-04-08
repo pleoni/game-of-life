@@ -1,0 +1,47 @@
+#!/bin/bash
+
+#DEPENDENCIES:
+#yum -y install gcc openmpi openmpi-devel make
+
+#Memory requirements:
+#15000 ~ 4GB
+#17000 ~ 5GB
+
+
+START="1"
+
+if [[ `more my_host.out` == "" ]]
+then
+	touch my_host.out
+else
+	echo
+	echo "File my_host.out already exist. Do you want overwrite it? (y/n)"
+	read risp
+	if [[ $risp == "y" ]]
+	then
+		rm my_host.out
+		touch my_host.out
+	else
+		START="0"
+	fi
+fi
+
+if [[ $START == "1" ]]
+then
+
+module load mpi
+make ompgnu
+
+	for N in $(echo 1)
+	do
+		for DIM in $(echo 15000 8000 4000 2000 1000 )
+		do 
+			for COMP in $(echo 1000 0)
+			do
+				CMD="./life_hpc2_ompgnu -t 2 -r $DIM -c $DIM -n $COMP -s 10 -d 0"
+				echo "# $CMD" >> my_host.out
+				eval $CMD >> my_host.out
+			done
+		done
+	done
+fi
