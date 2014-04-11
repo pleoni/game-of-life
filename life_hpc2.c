@@ -55,7 +55,7 @@ void copy_borders_top_bottom(double ** grid);
 void copy_borders_left_right(double ** grid);
 void log_initialize();
 void log_start_main_loop(double ta, double tb);
-void log_finalize(double ta, double tb, double tc, double ta_calc, double tb_calc);
+void log_finalize(double ta, double tb, double tc);
 
 void init_GPU();
 
@@ -199,8 +199,6 @@ int main(int argc, char ** argv) {
       #pragma omp master
       { if (mpi_size>1)  RecvBuffers_to_ExtBorders(grid); }
       #pragma omp barrier
-      
-      gettimeofday(&tempo,0);  ta_calc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA_CALC
 
       if (mycalc) compute_Borders(grid,next_grid); // omp: all threads execute this function - implicit barrier
       
@@ -211,8 +209,6 @@ int main(int argc, char ** argv) {
       #pragma acc wait(1)  // ---------------------------------
 
       if (mycalc) compute_Internals(grid,next_grid);  // seconda parte // omp: all threads execute this function - implicit barrier
-
-      gettimeofday(&tempo,0);  tb_calc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB_CALC
 
       if (DEBUG==2) {
       	#pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
@@ -253,7 +249,7 @@ int main(int argc, char ** argv) {
 
   gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
 
-  log_finalize(ta,tb,tc, ta_calc, tb_calc);
+  log_finalize(ta,tb,tc);
 
   if (mpi_rank==0 && strcmp(datafile,"")) {
     save_data(datafile);
@@ -694,13 +690,13 @@ void log_start_main_loop(double ta, double tb) {
 
 }
 
-void log_finalize(double ta, double tb, double tc, double ta_calc, double tb_calc) {
+void log_finalize(double ta, double tb, double tc) {
 
   if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STOP\n\n", hostname,mpi_rank,omp_rank,omp_size);
 
   if (DEBUG >0) {
   	fprintf(stderr,"Sum is: %f\n" , sum);
-	fprintf(stderr,"Computation time of a single step  - %f sec  \n" , tb_calc-ta_calc);
+	fprintf(stderr,"Computation time  - %f sec  \n" , tc -tb);
 	fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tc-ta);
 	}
 
