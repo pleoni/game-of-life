@@ -211,7 +211,7 @@ int main(int argc, char ** argv) {
       if (mycalc) compute_Internals(grid,next_grid);  // seconda parte // omp: all threads execute this function - implicit barrier
 
       //if (DEBUG==2) {
-      	#pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
+      #pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
 	//}
 
       #pragma omp master
@@ -232,7 +232,7 @@ int main(int argc, char ** argv) {
 
 	#pragma acc wait(3) //wait for copy_borders
 
-        //#pragma acc wait(2) //wait for compute_internals - slow if this clause is enabled, however output is correct if disabled
+        //#pragma acc wait(2) //wait for compute_internals - slow if this clause is enabled, however test is correct if disabled
 
         #pragma acc wait(4) //wait for update host
 
@@ -415,7 +415,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       for (j=cmin; j<cmin_int; j++) { // bordo sinistro
         #pragma ivdep // parallelizzazione omp (ignore vector dependencies)
         #pragma vector aligned // vettorizzazione - tutti i compilatori
-        #pragma acc loop vector(16) reduction(+: sum) independent private(sum)
+        #pragma acc loop vector(16) //reduction(+: sum) independent private(sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
@@ -435,7 +435,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       for (j=cmax; j>cmax_int; j--) { // bordo destro
         #pragma ivdep
         #pragma vector aligned
-        #pragma acc loop vector(16) reduction(+: sum) independent private(sum)
+        #pragma acc loop vector(16) //reduction(+: sum) independent private(sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
@@ -456,7 +456,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       for (i=rmin; i<rmin_int; i++) {  // bordo superiore
         #pragma ivdep
         #pragma vector aligned
-        #pragma acc loop vector(16) independent private(sum)
+        #pragma acc loop vector(16) //reduction(+: sum) independent private(sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
@@ -476,7 +476,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
       for (i=rmax; i>rmax_int; i--) {  // bordo inferiore
         #pragma ivdep
         #pragma vector aligned
-        #pragma acc loop vector(16) reduction(+: sum) independent private(sum)
+        #pragma acc loop vector(16) //reduction(+: sum) independent private(sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
@@ -509,7 +509,7 @@ void compute_Internals(double ** grid, double ** next_grid) {
       for (j=cmin_int; j<=cmax_int; j++) {  // colonne
         #pragma ivdep
         #pragma vector aligned
-        #pragma acc loop vector(16) reduction(+: sum) independent private(sum)
+        #pragma acc loop vector(16) //reduction(+: sum) independent private(sum)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
         // LIFE
