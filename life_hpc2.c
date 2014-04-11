@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2014.04.05";
+char version[]="2014.04.11";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -192,7 +192,7 @@ int main(int argc, char ** argv) {
     #pragma omp master
     { omp_size = omp_get_num_threads(); }
     
-    #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2],sum)
+    #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2],sum) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2])
     // Inizio regione "data": con "copy" e' implicita la copyout alla fine, quindi non serve rifare l'update host della grid dopo il loop.
     for(k=0; k<nsteps; k++) {    /* MAIN LOOP */ // -----------------------------
 
@@ -699,6 +699,7 @@ void log_finalize(double ta, double tb, double tc, double ta_calc, double tb_cal
   if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STOP\n\n", hostname,mpi_rank,omp_rank,omp_size);
 
   if (DEBUG >0) {
+  	fprintf(stderr,"Sum is: %f\n" , sum);
 	fprintf(stderr,"Computation time of a single step  - %f sec  \n" , tb_calc-ta_calc);
 	fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tc-ta);
 	}
