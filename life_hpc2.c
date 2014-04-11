@@ -210,9 +210,9 @@ int main(int argc, char ** argv) {
 
       if (mycalc) compute_Internals(grid,next_grid);  // seconda parte // omp: all threads execute this function - implicit barrier
 
-      if (DEBUG==2) {
+      //if (DEBUG==2) {
       	#pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
-	}
+	//}
 
       #pragma omp master
       {
