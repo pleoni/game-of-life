@@ -205,7 +205,7 @@ int main(int argc, char ** argv) {
       if (mycalc) compute_Borders(grid,next_grid); // omp: all threads execute this function - implicit barrier
       
       #pragma omp master
-      { if (mpi_size>1)  IntBorders_to_SendBuffers(grid); }
+      { if (mpi_size>1)  IntBorders_to_SendBuffers(next_grid); }
       #pragma omp barrier
       
       #pragma acc wait(1)  // ---------------------------------
