@@ -123,6 +123,8 @@ int main(int argc, char ** argv) {
   posix_memalign((void*)&(A), 64, ncomp*sizeof(double)); //allocates aligned memory
   posix_memalign((void*)&(B), 64, ncomp*sizeof(double)); //allocates aligned memory
 
+  random_initByTime(0); // initialize random number generator
+
   int i;
 
   for (i=0; i< ncomp; i++) A[i]=rand_double();
@@ -556,8 +558,6 @@ void init_grid(int nrows, int rmin, int rmax, int ncols, double ** grid, double 
 
   int i,j;
 
-  random_initByTime(rand()%100);
-
   if (rmin==1) rmin=0;
   if (rmax==nrows) rmax=nrows+1;
 
@@ -602,7 +602,6 @@ void randomize_grid(int nrows, int ncols, double ** grid, double prob){
 
   int i,j;
 
-  random_initByTime(rand()%100) ;
   for ( i=1;i<=nrows;i++)
     for ( j=1;j<=ncols;j++)
       if (rand_double() < prob)
