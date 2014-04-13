@@ -43,6 +43,8 @@ void compute_Borders(double ** grid, double ** next_grid);
 void compute_Internals(double ** grid, double ** next_grid);
 void RecvBuffers_to_ExtBorders(double ** grid);
 void IntBorders_to_SendBuffers(double ** grid);
+void RecvBuffers_to_ExtBorders_host(double ** grid);
+void IntBorders_to_SendBuffers_host(double ** grid);
 void mpi_sendrecv_buffers();
 void do_display(int rmin, int rmax, int cmin, int cmax, double ** grid);
 void save_data(char filename[]);
@@ -53,6 +55,8 @@ void clearscreen();
 void copy_border(int rmin, int rmax, int cmin, int cmax, double ** grid);
 void copy_borders_top_bottom(double ** grid);
 void copy_borders_left_right(double ** grid);
+void copy_borders_top_bottom_host(double ** grid);
+void copy_borders_left_right_host(double ** grid);
 void log_initialize();
 void log_start_main_loop(double ta, double tb);
 void log_finalize(double ta, double tb, double tc);
@@ -186,6 +190,18 @@ int main(int argc, char ** argv) {
 
   #pragma warning disable 161  //disable warnings in icc compilation (due to lack of openacc support)
 
+  // Inizializzazione delle ghost cells
+  
+  copy_borders_top_bottom_host(grid);  // copia direttamente sulla griglia
+
+  if (mpi_size==1) {
+    copy_borders_left_right_host(grid);  // copia direttamente sulla griglia
+  } else {
+    IntBorders_to_SendBuffers_host(grid);
+    mpi_sendrecv_buffers();
+    RecvBuffers_to_ExtBorders(grid);
+  }
+
   #pragma omp parallel private(k,omp_rank) firstprivate(rmin,rmax,cmin,cmax,rmin_int,rmax_int,cmin_int,cmax_int,ncomp,A,B) \
                        // firstprivate(ncols,nrows,DEBUG,nsteps) shared(grid,next_grid,omp_size,mpi_size) default(none)
   // Inizio regione "parallel" per OpenMP
@@ -220,11 +236,11 @@ int main(int argc, char ** argv) {
       {
         copy_borders_top_bottom(next_grid);  // copia direttamente sulla griglia
 
-        if (mpi_size==1) {
-          copy_borders_left_right(next_grid);  // copia direttamente sulla griglia
-        } else {
+        if (mpi_size==1) {                     // se c'e' un solo processo
+          copy_borders_left_right(next_grid);  // copia direttamente sulla griglia,
+        } else {                               // altrimenti..
           #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2])
-          mpi_sendrecv_buffers();
+          mpi_sendrecv_buffers();              // ..trasmetti via MPI
           #pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2])
         }
 
@@ -264,6 +280,26 @@ int main(int argc, char ** argv) {
 
 }  /* main */
 
+
+void copy_borders_top_bottom_host(double ** grid) {
+  
+  int i;
+  for (i = cmin - 1; i <= cmax + 1; ++i) {  // copy rows (top-bottom)
+    grid[rmin-1][i] = grid[rmax][i];
+	  grid[rmax+1][i] = grid[rmin][i];
+	}
+
+}
+
+void copy_borders_left_right_host(double ** grid) {
+
+  int i;
+  for (i = rmin - 1; i <= rmax + 1; ++i) {  // copy cols (left-right)
+    grid[i][cmin-1] = grid[i][cmax];
+    grid[i][cmax+1] = grid[i][cmin];
+  }
+
+}
 
 void copy_borders_top_bottom(double ** grid) {
   
@@ -368,12 +404,27 @@ void swap_grids() {
 }
 
 
+void RecvBuffers_to_ExtBorders_host(double ** grid) {
+  
+  int i;
+  for (i=0; i<nrows+2; i++) grid[i][0]=col_recv_l[i] ;  //Copy recv buff to Col 0
+  for (i=0; i<nrows+2; i++) grid[i][ncols+1]=col_recv_r[i];  //copy recv buff to Col n+1
+  
+}
+
+void IntBorders_to_SendBuffers_host(double ** next_grid) {
+  
+  int i;
+  for (i=0; i<nrows+2; i++) col_send_l[i]=next_grid[i][1];  // Copy Col 1 to send buff
+  for (i=0; i<nrows+2; i++) col_send_r[i]=next_grid[i][ncols];  //Copy Col n to send buff
+  
+}
+
+
 void RecvBuffers_to_ExtBorders(double ** grid) {
   
-  int k,l,j,i;
-  double neighbors=0.0;
+  int i;
 
-  // ReceiveBuffers to ExtBorders
   #pragma acc kernels async(1) present(grid[0:nrows+2][0:ncols+2],col_recv_l[0:nrows+2], col_recv_r[0:nrows+2])
   {
     #pragma acc loop vector(16) independent
@@ -386,10 +437,8 @@ void RecvBuffers_to_ExtBorders(double ** grid) {
 
 void IntBorders_to_SendBuffers(double ** grid) {
   
-  int k,l,j,i;
-  double neighbors=0.0;
+  int i;
 
-  // IntBorders to SendBuffers
   #pragma acc kernels async(1) present(grid[nrows+2][ncols+2],col_send_l[0:nrows+2],col_send_r[0:nrows+2])
   {
     #pragma acc loop vector(16) independent
@@ -415,8 +464,8 @@ void compute_Borders(double ** grid, double ** next_grid) {
     for (i=rmin; i<=rmax; i++) {  // righe
       #pragma acc loop worker independent
       for (j=cmin; j<cmin_int; j++) { // bordo sinistro
-        #pragma ivdep // parallelizzazione omp (ignore vector dependencies)
-        #pragma vector aligned // vettorizzazione - tutti i compilatori
+        #pragma ivdep          // ignore vector dependencies (intel compiler)
+        #pragma vector aligned // aligned data movement instructions (intel compiler)
         #pragma acc loop vector(16)
         for (k=0; k < ncomp; k++)  sum += A[k] + B[k]; // COMP
 
