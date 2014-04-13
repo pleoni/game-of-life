@@ -199,7 +199,7 @@ int main(int argc, char ** argv) {
   } else {
     IntBorders_to_SendBuffers_host(grid);
     mpi_sendrecv_buffers();
-    RecvBuffers_to_ExtBorders(grid);
+    //RecvBuffers_to_ExtBorders_host(grid); // non serve, c'e' gia' nel main loop
   }
 
   #pragma omp parallel private(k,omp_rank) firstprivate(rmin,rmax,cmin,cmax,rmin_int,rmax_int,cmin_int,cmax_int,ncomp,A,B) \
@@ -210,7 +210,7 @@ int main(int argc, char ** argv) {
     #pragma omp master
     { omp_size = omp_get_num_threads(); }
     
-    #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2],sum) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],col_recv_l[0:nrows+2],col_recv_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2])
+    #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2],sum,col_recv_l[0:nrows+2],col_recv_r[0:nrows+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2])
     // Inizio regione "data": con "copy" e' implicita la copyout alla fine, quindi non serve rifare l'update host della grid dopo il loop.
     for(k=0; k<nsteps; k++) {    /* MAIN LOOP */ // -----------------------------
 
