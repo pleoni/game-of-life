@@ -353,7 +353,7 @@ void mpi_sendrecv_buffers() {
 void options(int argc, char * argv[]) {
 
   int i;
-  while ( (i = getopt(argc, argv, "W:vc:r:s:d:ht:f:C:n:G:a:x")) != -1) {
+  while ( (i = getopt(argc, argv, "W:vc:r:s:d:ht:f:C:n:G:ax")) != -1) {
     switch (i) {
     case 'c':  ncols       = strtol(optarg, NULL, 10);  break;
     case 'G':  mygpu       = strtol(optarg, NULL, 10);  break;
