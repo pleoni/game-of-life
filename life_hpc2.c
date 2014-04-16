@@ -215,18 +215,18 @@ int main(int argc, char ** argv) {
     for(k=0; k<nsteps; k++) {    /* MAIN LOOP */ // -----------------------------
 
       #pragma omp master
-      { if (mpi_size>1)  RecvBuffers_to_ExtBorders(grid); }
+      { if (mpi_size>1)  RecvBuffers_to_ExtBorders(grid); } // async(1)
       #pragma omp barrier
 
-      if (mycalc) compute_Borders(grid,next_grid); // omp: all threads execute this function - implicit barrier
+      if (mycalc) compute_Borders(grid,next_grid); // async(1) // omp: all threads execute this function - implicit barrier
       
       #pragma omp master
-      { if (mpi_size>1)  IntBorders_to_SendBuffers(next_grid); }
+      { if (mpi_size>1)  IntBorders_to_SendBuffers(next_grid); } // async(1)
       #pragma omp barrier
       
       #pragma acc wait(1)  // ---------------------------------
 
-      if (mycalc) compute_Internals(grid,next_grid);  // seconda parte // omp: all threads execute this function - implicit barrier
+      if (mycalc) compute_Internals(grid,next_grid);  // async(2) // omp: all threads execute this function - implicit barrier
 
       //if (DEBUG==2) {
       #pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
