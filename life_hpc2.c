@@ -556,7 +556,7 @@ void compute_Internals(double ** grid, double ** next_grid) {
     #pragma acc loop gang(100) independent reduction(+:sum)
     #pragma omp for private(i,j,k,neighbors) reduction(+:sum) schedule(static) // collapse(2)
     for (i=rmin_int; i<=rmax_int; i++) {  // righe
-      #pragma acc loop workers independent
+      #pragma acc loop worker independent
       for (j=cmin_int; j<=cmax_int; j++) {  // colonne
         #pragma ivdep
         #pragma vector aligned
