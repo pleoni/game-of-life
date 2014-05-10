@@ -41,7 +41,7 @@ kep: acckep ompkep
 
 accpgi:
 	bash -c "$(UNLOADALL) ; $(LOADPGI) ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_accpgi -acc -ta=nvidia,cuda5.5,cc35 -Minfo=accel -lpgacc"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_accpgi -acc -ta=tesla:kepler -Minfo=accel -lpgacc"
 
 omppgi: 
 	bash -c "$(UNLOADALL) ; $(LOADPGI) ; \
@@ -74,7 +74,7 @@ sericc:
 	$(CC) $(PACKAGE).c $(SIMD_GNU) $(MyO) $(SIMD_INTEL) -o $(PACKAGE)_sericc"
 
 acckep:
-	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=nvidia,cuda5.5,cc35 -Minfo=accel -lpgacc
+	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=tesla:kepler -Minfo=accel
 
 ompkep:
 	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_ompkep $(MyO) -mp=numa -fast -Minfo=vec,mp
