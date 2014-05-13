@@ -224,7 +224,7 @@ int main(int argc, char ** argv) {
       { if (mpi_size>1)  IntBorders_to_SendBuffers(next_grid); } // async(1)
       #pragma omp barrier
       
-      //#pragma acc wait(1)  // ---------------------------------
+      #pragma acc wait(1)  // ---------------------------------
 
       if (mycalc) compute_Internals(grid,next_grid);  // async(2) // omp: all threads execute this function - implicit barrier
 
