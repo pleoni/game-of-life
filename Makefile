@@ -3,16 +3,18 @@
 #******************************************************************************#
 
 PACKAGE = life_hpc2
-VERSION = 270214
+VERSION = 220514
 RELEASE = 1
 
 LOADPGI     = module load pgi openmpi/1.6.5--pgi--14.1
 UNLOADPGI   = module unload pgi openmpi/1.6.5--pgi--14.1
 LOADGNU     = module load gnu openmpi
 UNLOADGNU   = module unload gnu openmpi
+LOADGOMP40     = module load gomp40 openmpi-x86_64
+UNLOADGOMP40   = module unload gomp40 openmpi-x86_64
 LOADINTEL   = module load intel intelmpi
 UNLOADINTEL = module unload intel intelmpi
-UNLOADALL   = $(UNLOADPGI); $(UNLOADGNU); $(UNLOADINTEL)
+UNLOADALL   = $(UNLOADPGI); $(UNLOADGNU); $(UNLOADINTEL); $(UNLOADGOMP40)
 
 TESTFILE      = test_run.dat
 TESTREFERENCE = test_reference.dat
@@ -74,13 +76,17 @@ sericc:
 	$(CC) $(PACKAGE).c $(SIMD_GNU) $(MyO) $(SIMD_INTEL) -o $(PACKAGE)_sericc"
 
 acckep:
-	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=tesla:kepler -Minfo=accel
+	bash -c "$(UNLOADALL) ; \
+	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=tesla:kepler -Minfo=accel -O3"
 
 ompkep:
 	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_ompkep $(MyO) -mp=numa -fast -Minfo=vec,mp
 
+omp4kep:
+	bash -c "$(UNLOADALL) ; $(LOADGOMP40) ; \
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_omp4kep $(MyO) -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1 -D OMP4"
 
-clean: ; $(RM) $(PACKAGE)_accpgi  $(PACKAGE)_omppgi $(PACKAGE)_ompicc $(PACKAGE)_serpgi $(PACKAGE)_ompgnu $(PACKAGE)_sergnu $(PACKAGE)_omp.mic $(PACKAGE)_acckep $(PACKAGE)_ompkep $(TESTFILE) $(TESTFILE).txt
+clean: ; $(RM) $(PACKAGE)_accpgi  $(PACKAGE)_omppgi $(PACKAGE)_ompicc $(PACKAGE)_serpgi $(PACKAGE)_ompgnu $(PACKAGE)_sergnu $(PACKAGE)_omp.mic $(PACKAGE)_acckep $(PACKAGE)_ompkep $(PACKAGE)_omp4kep $(TESTFILE) $(TESTFILE).txt
 
 .PHONY : clean all pgi gnu mic kep
 
