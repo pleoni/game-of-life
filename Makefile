@@ -14,7 +14,7 @@ LOADGOMP40     = module load gomp40 openmpi-x86_64
 UNLOADGOMP40   = module unload gomp40 openmpi-x86_64
 LOADINTEL   = module load intel intelmpi
 UNLOADINTEL = module unload intel intelmpi
-UNLOADALL   = $(UNLOADPGI); $(UNLOADGNU); $(UNLOADINTEL); $(UNLOADGOMP40)
+UNLOADALL   = $(UNLOADPGI); $(UNLOADGNU); $(UNLOADINTEL)
 
 TESTFILE      = test_run.dat
 TESTREFERENCE = test_reference.dat
@@ -76,10 +76,11 @@ sericc:
 	$(CC) $(PACKAGE).c $(SIMD_GNU) $(MyO) $(SIMD_INTEL) -o $(PACKAGE)_sericc"
 
 acckep:
-	bash -c "$(UNLOADALL) ; \
+	bash -c "$(UNLOADALL) ; $(UNLOADGOMP40) ; \
 	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=tesla:kepler -Minfo=accel -O3"
 
 ompkep:
+	bash -c "$(UNLOADALL) ; $(UNLOADGOMP40) ; \
 	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_ompkep $(MyO) -mp=numa -fast -Minfo=vec,mp
 
 omp4kep:
