@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2014.05.22";
+char version[]="2014.05.23";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -460,7 +460,7 @@ void compute_Borders(double ** grid, double ** next_grid) {
   double neighbors=0.0;
 
   // Compute IntBorders
-  #pragma acc kernels present(grid,next_grid,sum,A,B) async(1)
+  #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp]) async(1)
   //#pragma omp parallel
   {
     #pragma omp for private(i,j,k) reduction(+:sum) schedule(static) // collapse(2)
@@ -580,7 +580,7 @@ void compute_Internals(double ** grid, double ** next_grid) {
   double neighbors=0.0;
 
   // Compute Internals
-  #pragma acc kernels present(grid,next_grid,sum,A,B) async(2)
+  #pragma acc kernels present(grid[nrows+2][ncols+2],next_grid[nrows+2][ncols+2],sum,A[0:ncomp],B[0:ncomp]) async(2)
   {
     #pragma omp for private(i,j,k) reduction(+:sum) schedule(static)
     #pragma acc loop independent reduction(+:sum) 
