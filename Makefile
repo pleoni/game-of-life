@@ -74,7 +74,7 @@ ompicc:
 omp4icc:
 	bash -c "$(UNLOADALL) ; $(LOADINTEL) ; \
 	source $(INTEL_HOME)/bin/compilervars.sh intel64 ; \
-	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompicc $(MyO) $(SIMD_INTEL) -fopenmp -D OMP4 -vec-report2"
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_omp4icc $(MyO) $(SIMD_INTEL) -fopenmp -D OMP4 -vec-report2"
 
 sericc: 
 	bash -c "$(UNLOADALL) ; $(LOADINTEL) ; \
