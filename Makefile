@@ -86,7 +86,7 @@ acckep:
 
 ompkep:
 	bash -c "$(UNLOADALL) ; $(UNLOADGOMP40) ; \
-	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_ompkep $(MyO) -mp=numa -fast -Minfo=vec,mp
+	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_ompkep $(MyO) -mp=numa -fast -Minfo=vec,mp"
 
 omp4kep:
 	bash -c "$(UNLOADALL) ; $(LOADGOMP40) ; \
