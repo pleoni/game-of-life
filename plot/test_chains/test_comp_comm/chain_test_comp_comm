@@ -6,7 +6,7 @@ SECOND=$(qsub -W depend=afterany:$FIRST -v type=host-icc-mpi -o life_host_mpi.ou
 echo $SECOND
 THIRD=$(qsub -W depend=afterany:$SECOND -v type=mic-mpi -o life_mic_mpi.out mic_mpi.qsub)
 echo $THIRD
-FOURTH=$(qsub -v type=acc-mpi-nc -o life_acc_mpi.out acc_mpi_comm.qsub)
+FOURTH=$(qsub -v type=acc-mpi-nc -o life_acc_mpi_comm.out acc_mpi.qsub)
 echo $FOURTH
 FIFTH=$(qsub -W depend=afterany:$FIRST -v type=host-icc-mpi-nc -o life_host_mpi_comm.out host_mpi.qsub)
 echo $FIFTH
