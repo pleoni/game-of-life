@@ -71,6 +71,11 @@ ompicc:
 	bash -c "$(UNLOADALL) ; $(LOADINTEL) ; \
 	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompicc $(MyO) $(SIMD_INTEL) -fopenmp -vec-report2"
 
+omp4icc:
+	bash -c "$(UNLOADALL) ; $(LOADINTEL) ; \
+	source $(INTEL_HOME)/bin/compilervars.sh intel64 ; \
+	$(CC) $(PACKAGE).c -o $(PACKAGE)_ompicc $(MyO) $(SIMD_INTEL) -fopenmp -D OMP4 -vec-report2"
+
 sericc: 
 	bash -c "$(UNLOADALL) ; $(LOADINTEL) ; \
 	$(CC) $(PACKAGE).c $(SIMD_GNU) $(MyO) $(SIMD_INTEL) -o $(PACKAGE)_sericc"
@@ -87,7 +92,7 @@ omp4kep:
 	bash -c "$(UNLOADALL) ; $(LOADGOMP40) ; \
 	$(CC) $(PACKAGE).c -o $(PACKAGE)_omp4kep $(MyO) -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1 -D OMP4"
 
-clean: ; $(RM) $(PACKAGE)_accpgi  $(PACKAGE)_omppgi $(PACKAGE)_ompicc $(PACKAGE)_serpgi $(PACKAGE)_ompgnu $(PACKAGE)_sergnu $(PACKAGE)_omp.mic $(PACKAGE)_acckep $(PACKAGE)_ompkep $(PACKAGE)_omp4kep $(TESTFILE) $(TESTFILE).txt
+clean: ; $(RM) $(PACKAGE)_accpgi  $(PACKAGE)_omppgi $(PACKAGE)_ompicc $(PACKAGE)_omp4icc $(PACKAGE)_serpgi $(PACKAGE)_ompgnu $(PACKAGE)_sergnu $(PACKAGE)_omp.mic $(PACKAGE)_acckep $(PACKAGE)_ompkep $(PACKAGE)_omp4kep $(TESTFILE) $(TESTFILE).txt
 
 .PHONY : clean all pgi gnu mic kep
 
