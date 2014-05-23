@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2014.05.23";
+char version[]="2014.05.24";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -76,8 +76,8 @@ double base_life=0.2;  //!< Base probability
 char datafile[MYSTRLEN]="";
 char hostname[MYSTRLEN];
 long datasize;
-int ncomp=1000;            //!< Computational load
-double sum=0.0;
+//int ncomp=1000;            //!< Computational load
+//double sum=0.0;
 int nrows_tot, ncols_tot;     // total n. of rows/cols
 int bordersize = 1;           // larghezza (trasversale) di tutti i bordi e i buffer
 int rmin, rmax, cmin, cmax,   // boundary of the "real" grid
@@ -87,9 +87,19 @@ double ** grid;
 double ** next_grid;
 double ** temp_grid;
 
-double *A, *B; // array for computation
+//double *A, *B; // array for computation
 
 double *col_send_l, *col_send_r, *col_recv_l, *col_recv_r; //border buffers
+
+#ifdef OMP4
+#pragma omp declare target
+#endif OMP4
+	int ncomp=1000;            //!< Computational load
+	double sum=0.0;
+	double *A, *B; // array for computation
+#ifdef OMP4
+#pragma omp end declare target
+#endif OMP4
 
 ////// omp + MPI //////
 
@@ -110,7 +120,7 @@ MPI_Status  status[4];
 
 int main(int argc, char ** argv) {
 
-  double ta, tb, tc, ta_calc, tb_calc;
+  double ta, tb, tc, ta_calc, tb_calc, ta_mic, tb_mic;
   struct timeval tempo ;
 
   options(argc, argv);         /* optarg management */
@@ -184,9 +194,20 @@ int main(int argc, char ** argv) {
   
   int k;
 
-  #if _OPENACC || OMP4
-  	init_accelerator();
-  #endif
+  init_accelerator();
+
+  ///////TESTING OMP4 OFFLOAD
+
+#ifdef OMP4
+  fprintf(stderr, "PLEASE NOTE: this is only for test purpose, not real calc\n\n");
+  gettimeofday(&tempo,0);  ta_mic=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA
+  #pragma omp target map(A[0:ncomp]) map(B[0:ncomp]) map(tofrom:sum)
+  {
+  	for (k=0; k < ncomp; k++)  sum += A[k] + B[k];
+  }
+  gettimeofday(&tempo,0);  tb_mic=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
+  fprintf(stderr,"OMP4-MIC Computation time  - %f sec  \n" , tb_mic-ta_mic);
+#endif
 
   #pragma warning disable 161  //disable warnings in icc compilation (due to lack of openacc support)
 
@@ -211,7 +232,6 @@ int main(int argc, char ** argv) {
     { omp_size = omp_get_num_threads(); }
     
     #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2],sum,col_recv_l[0:nrows+2],col_recv_r[0:nrows+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2])
-    // Inizio regione "data": con "copy" e' implicita la copyout alla fine, quindi non serve rifare l'update host della grid dopo il loop.
     for(k=0; k<nsteps; k++) {    /* MAIN LOOP */ // -----------------------------
     
      gettimeofday(&tempo,0);  ta_calc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA_CALC
@@ -752,7 +772,6 @@ void init_accelerator() {
 	}
 #endif
 
-//#ifdef _OPENMP
 #ifdef OMP4 
 	int num_omp_targets = omp_get_num_devices();
 	if (DEBUG==1) fprintf(stderr,"\nNumber of OMP4 target devices available: %d\n\n", num_omp_targets);
