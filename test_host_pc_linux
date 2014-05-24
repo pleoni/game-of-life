@@ -34,13 +34,16 @@ make ompgnu
 
 	for N in $(echo 1)
 	do
-		for DIM in $(echo 15000 8000 4000 2000 1000 )
+		for DIM in $(echo 8192 4096 2048)
 		do 
-			for COMP in $(echo 1000 0)
+			for COMP in $(echo 500 100 1)
 			do
-				CMD="./life_hpc2_ompgnu -t 2 -r $DIM -c $DIM -n $COMP -s 10 -d 0"
-				echo "# $CMD" >> my_host.out
-				eval $CMD >> my_host.out
+				for THR in $(echo 4 2 1)
+				do
+					CMD="./life_hpc2_ompgnu -t $THR -r $DIM -c $DIM -n $COMP -s 10 -d 0"
+					echo "# $CMD" >> my_host.out
+					$CMD 2>> my_host.out
+				done
 			done
 		done
 	done
