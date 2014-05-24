@@ -30,7 +30,7 @@ if [[ $START == "1" ]]
 then
 
 module load mpi
-make ompgnu
+mpicc life_hpc2.c -o life_hpc2_ompgnu -O3 -mavx -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=1
 
 	for N in $(echo 1)
 	do
