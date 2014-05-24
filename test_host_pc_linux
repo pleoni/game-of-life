@@ -38,7 +38,7 @@ make ompgnu
 		do 
 			for COMP in $(echo 500 100 1)
 			do
-				for THR in $(echo 4 2 1)
+				for THR in $(echo 8 4 2 1)
 				do
 					CMD="./life_hpc2_ompgnu -t $THR -r $DIM -c $DIM -n $COMP -s 10 -d 0"
 					echo "# $CMD" >> my_host.out
