@@ -1,0 +1,86 @@
+#!/bin/bash
+
+if [[ $1 == "-all" ]] || [[ $1 == "" ]]
+then
+	FIRST=$(qsub -v type=acc -o life_acc_perf.out acc.qsub)
+	echo $FIRST
+	SECOND=$(qsub -W depend=afterany:$FIRST -v type=host-icc -o life_host_perf.out host.qsub)
+	echo $SECOND
+	THIRD=$(qsub -W depend=afterany:$SECOND -v type=mic -o life_mic_perf.out mic.qsub)
+	echo $THIRD
+	FOURTH=$(qsub -W depend=afterany:$THIRD -v type=acc-mpi -o life_acc_mpi.out acc_mpi.qsub)
+	echo $FOURTH
+	FIFTH=$(qsub -W depend=afterany:$FOURTH -v type=host-icc-mpi -o life_host_mpi.out host_mpi.qsub)
+	echo $FIFTH
+	SIXTH=$(qsub -W depend=afterany:$FIFTH -v type=mic-mpi -o life_mic_mpi.out mic_mpi.qsub)
+	echo $SIXTH
+	SEVENTH=$(qsub -W depend=afterany:$SIXTH -v type=acc-mpi-nc -o life_acc_mpi_comm.out acc_mpi.qsub)
+	echo $SEVENTH
+	EIGHTH=$(qsub -W depend=afterany:$SEVENTH -v type=host-icc-mpi-nc -o life_host_mpi_comm.out host_mpi.qsub)
+	echo $EIGHTH
+	NINTH=$(qsub -W depend=afterany:$EIGHTH -v type=mic-mpi-nc -o life_mic_mpi_comm.out mic_mpi.qsub)
+	echo $NINTH
+	TENTH=$(qsub -W depend=afterany:$NINTH -v type=host-icc -o life_host_icc.out host.qsub)
+	echo $TENTH
+	ELEVENTH=$(qsub -W depend=afterany:$TENTH -v type=host-gnu -o life_host_gnu.out host.qsub)
+	echo $ELEVENTH
+	TWELFTH=$(qsub -W depend=afterany:$ELEVENTH -v type=host-pgi -o life_host_pgi.out host.qsub)
+	echo $TWELFTH
+fi
+
+if [[ $1 == "-perf" ]]
+then
+	FIRST=$(qsub -v type=acc -o life_acc_perf.out acc.qsub)
+	echo $FIRST
+	SECOND=$(qsub -W depend=afterany:$FIRST -v type=host-icc -o life_host_perf.out host.qsub)
+	echo $SECOND
+	THIRD=$(qsub -W depend=afterany:$SECOND -v type=mic -o life_mic_perf.out mic.qsub)
+	echo $THIRD
+fi
+
+if [[ $1 == "-mpi" ]]
+then
+	FOURTH=$(qsub -v type=acc-mpi -o life_acc_mpi.out acc_mpi.qsub)
+	echo $FOURTH
+	FIFTH=$(qsub -W depend=afterany:$FOURTH -v type=host-icc-mpi -o life_host_mpi.out host_mpi.qsub)
+	echo $FIFTH
+	SIXTH=$(qsub -W depend=afterany:$FIFTH -v type=mic-mpi -o life_mic_mpi.out mic_mpi.qsub)
+	echo $SIXTH
+fi
+
+if [[ $1 == "-comm-mpi" ]]
+then
+	FOURTH=$(qsub -v type=acc-mpi -o life_acc_mpi.out acc_mpi.qsub)
+	echo $FOURTH
+	FIFTH=$(qsub -W depend=afterany:$FOURTH -v type=host-icc-mpi -o life_host_mpi.out host_mpi.qsub)
+	echo $FIFTH
+	SIXTH=$(qsub -W depend=afterany:$FIFTH -v type=mic-mpi -o life_mic_mpi.out mic_mpi.qsub)
+	echo $SIXTH
+	SEVENTH=$(qsub -W depend=afterany:$SIXTH -v type=acc-mpi-nc -o life_acc_mpi_comm.out acc_mpi.qsub)
+	echo $SEVENTH
+	EIGHTH=$(qsub -W depend=afterany:$SEVENTH -v type=host-icc-mpi-nc -o life_host_mpi_comm.out host_mpi.qsub)
+	echo $EIGHTH
+	NINTH=$(qsub -W depend=afterany:$EIGHTH -v type=mic-mpi-nc -o life_mic_mpi_comm.out mic_mpi.qsub)
+	echo $NINTH
+fi
+
+if [[ $1 == "-compilers" ]]
+then
+	TENTH=$(qsub -v type=host-icc -o life_host_icc.out host.qsub)
+	echo $TENTH
+	ELEVENTH=$(qsub -W depend=afterany:$TENTH -v type=host-gnu -o life_host_gnu.out host.qsub)
+	echo $ELEVENTH
+	TWELFTH=$(qsub -W depend=afterany:$ELEVENTH -v type=host-pgi -o life_host_pgi.out host.qsub)
+	echo $TWELFTH
+fi
+
+if [[ $1 != "-compilers" ]] && [[ $1 != "-comm-mpi" ]] && [[ $1 != "-mpi" ]] && [[ $1 != "-mpi" ]] && [[ $1 != "-perf" ]] && [[ $1 != "-all" ]]
+then
+	echo
+	echo "Wrong option."
+	echo
+	echo "Usage:"
+	echo "./chain_test [-all] [-compilers] [-comm-mpi] [-mpi] [-perf]"
+	echo "Default is: [-all]"
+	echo
+fi
