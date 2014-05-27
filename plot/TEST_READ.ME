@@ -1,44 +1,11 @@
 README LIFE TEST
 ================
 
-CUSTOM MODE
-===========
 
-1. Enter in game-of-life/plot/test_perf_mpi
+1. Enter in game-of-life/plot/test_all
 
-2. Setup the script "life_hpc_test.qsub" ---> edit PBS lines with your configurations
+2. launch ./chaintest [-all] [-compilers] [-comm-mpi] [-mpi] [-perf]
 
-3. launch "qsub -v type=<TEST> -o <OUTPUT>.out life_hpc_test.qsub
+3. when jobs are finished, clean output files from compilation and other verbose data
 
-4. type "python <SCRIPT>.py" to plot results
-
-Possible commands can be:
-
-qsub -v type=acc -o life_perf_acc.out life_hpc_test.qsub
-qsub -v type=acc-mpi -o life_acc_mpi.out life_hpc_test.qsub
-
-qsub -v type=host-icc -o life_host_perf.out life_hpc_test.qsub
-qsub -v type=host-icc-mpi -o life_host_mpi.out life_hpc_test.qsub
-
-qsub -v type=host-gnu -o life_host_perf.out life_hpc_test.qsub
-qsub -v type=host-gnu-mpi -o life_host_mpi.out life_hpc_test.qsub
-
-qsub -v type=host-pgi -o life_host_perf.out life_hpc_test.qsub
-qsub -v type=host-pgi-mpi -o life_host_mpi.out life_hpc_test.qsub
-
-qsub -v type=mic -o life_perf_mic.out life_hpc_test.qsub
-qsub -v type=mic-mpi -o life_mic_mpi.out life_hpc_test.qsub
-
-
-TEST CHAINS
-===========
-
-To run test chains:
-
-~ enter in "game-of-life/plot/test_chains"
-~ enter in the folder with test that you want run (e.g: test_device_perf, test_mpi, test_compilers_perf)
-~ run test chains file as a normal executable (e.g: ./chain_test_perf)
-
-When all jobs are finished (if all it's ok), many output files will be created, they can be plotted directly with python script inlcuded in the same folder of the chain script.
-
-PLEASE NOTE: remember to clean output files from compilation messages.
+3. type "python <SCRIPT>.py" to plot results
