@@ -1,8 +1,9 @@
 #!/bin/bash
 #PBS -j oe
 #PBS -A CON13_INFN
-#PBS -N life_perf_test
+#PBS -N life_mpi_test
 #PBS -q parallel
+#PBS -l walltime=01:00:00
 ##GPU
 ##PBS -l select=1:ncpus=16:ngpus=1:mem=5gb
 ##GPU-MPI
@@ -50,7 +51,7 @@ then
 		do 
 			for COMP in $(echo 1000 500 100 1)
 			do
-			CMD="mpirun -np $N ./life_hpc2_accpgi -r $DIM -c $DIM -n $COMP -s 100 -d 0"
+			CMD="mpirun -np $N ./life_hpc2_accpgi -r $DIM -c $DIM -n $COMP -s 10 -d 0"
 			echo "# $CMD"
 			eval $CMD
 			done
@@ -71,7 +72,7 @@ then
 		do 
 			for COMP in $(echo 1000)
 			do
-			CMD="mpirun -np $N ./life_hpc2_accpgi -x -r $DIM -c $DIM -n $COMP -s 100 -d 0"
+			CMD="mpirun -np $N ./life_hpc2_accpgi -x -r $DIM -c $DIM -n $COMP -s 10 -d 0"
 			echo "# $CMD"
 			eval $CMD
 			done
