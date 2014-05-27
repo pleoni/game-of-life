@@ -1,9 +1,0 @@
-#!/bin/bash
-
-FIRST=$(qsub -v type=acc -o life_acc_perf.out acc.qsub)
-echo $FIRST
-SECOND=$(qsub -W depend=afterany:$FIRST -v type=host-icc -o life_host_perf.out host.qsub)
-echo $SECOND
-THIRD=$(qsub -W depend=afterany:$SECOND -v type=mic -o life_mic_perf.out mic.qsub)
-echo $THIRD
-
