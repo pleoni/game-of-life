@@ -12,7 +12,7 @@ datafile3="life_mic_mpi.out"
 if len(sys.argv) > 1:
     datafile=sys.argv[1]
 
-plotfile="plot_mpi_test.png"
+plotfile="plot_mpi_grid.png"
 data1 = loadtxt(datafile1)
 data2 = loadtxt(datafile2)
 data3 = loadtxt(datafile3)
@@ -35,7 +35,7 @@ top.set_title(str(today) + ' LIFE - MPI on eurora - K20 - grid 8192')
 top.grid()
 top.set_xlabel('comp')
 top.set_ylabel('log(time)')
-#top.set_yscale('log') 
+top.set_yscale('log') 
 #top.legend()
 top.set_xlim(-10,1050)
 top.plot(M8ACC[:,5],M8ACC[:,8],'-xr',M4ACC[:,5],M4ACC[:,8],'-+g',M1ACC[:,5],M1ACC[:,8],'-oc');
@@ -53,7 +53,7 @@ middle.set_title(str(today) + ' LIFE - MPI on eurora - HOST - grid 8192')
 middle.grid()
 middle.set_xlabel('comp')
 middle.set_ylabel('log(time)')
-#middle.set_yscale('log') 
+middle.set_yscale('log') 
 middle.set_xlim(-10,1050)
 
 middle.plot(M8HOST[:,5],M8HOST[:,8],'-xr',M4HOST[:,5],M4HOST[:,8],'-+g',M1HOST[:,5],M1HOST[:,8],'-oc');
@@ -69,7 +69,7 @@ bottom.set_title(str(today) + 'LIFE - MPI on eurora - MIC - grid 8192')
 bottom.grid()
 bottom.set_xlabel('comp')
 bottom.set_ylabel('log(time)')
-#bottom.set_yscale('log') 
+bottom.set_yscale('log') 
 bottom.set_xlim(-10,1050)
 
 bottom.plot(M8MIC[:,5],M8MIC[:,8],'-xr',M4MIC[:,5],M4MIC[:,8],'-+g',M1MIC[:,5],M1MIC[:,8],'-oc');
