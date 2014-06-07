@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2014.05.24";
+char version[]="2014.06.07";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -36,7 +36,6 @@ int DEBUG=1;
 void options(int argc, char * argv[]) ;
 void usage(char * argv[]);
 void init_grid(int nrows, int rmin, int rmax, int ncols, double ** grid, double prob);
-//void allocate_grid(int,  int , double *** grid);
 void randomize_grid(int, int , double ** grid, double base_life);
 double rand_double();
 void compute_Borders(double ** grid, double ** next_grid);
@@ -59,44 +58,45 @@ void copy_borders_top_bottom_host(double ** grid);
 void copy_borders_left_right_host(double ** grid);
 void log_initialize();
 void log_start_main_loop(double ta, double tb);
-void log_finalize(double ta, double tb, double tc, double tb_calc, double ta_calc);
+void log_finalize(double ta, double tb, double tc);
 
 void init_accelerator();
 
 //////////// global vars ////////////
 
 int mygpu=0; //default GPU
-int contig_malloc=0;
-int mycalc=1;
-
-int nsteps=1000;       //!< Number of Steps
-int ncols=80;          //!< Number of Columns
-int nrows=40;          //!< Number of rRows
+int contig_malloc=0; //allocation mode flag
+int mycalc=1; // calc flag
 double base_life=0.2;  //!< Base probability
 char datafile[MYSTRLEN]="";
 char hostname[MYSTRLEN];
 long datasize;
-//int ncomp=1000;            //!< Computational load
-//double sum=0.0;
 int nrows_tot, ncols_tot;     // total n. of rows/cols
 int bordersize = 1;           // larghezza (trasversale) di tutti i bordi e i buffer
+
+#ifdef OMP4
+#pragma omp declare target
+#endif OMP4
 int rmin, rmax, cmin, cmax,   // boundary of the "real" grid
     rmin_int, rmax_int, cmin_int, cmax_int;  // boundary of the innermost part of the grid
-
-double ** grid;
-double ** next_grid;
-double ** temp_grid;
-
-//double *A, *B; // array for computation
+#ifdef OMP4
+#pragma omp end declare target
+#endif OMP4
 
 double *col_send_l, *col_send_r, *col_recv_l, *col_recv_r; //border buffers
 
 #ifdef OMP4
 #pragma omp declare target
 #endif OMP4
-	int ncomp=1000;            //!< Computational load
-	double sum=0.0;
-	double *A, *B; // array for computation
+int ncomp=1000;            //!< Computational load
+double sum=0.0;
+double *A, *B; // array for computation
+double ** grid;
+double ** next_grid;
+double ** temp_grid;
+int nsteps=1000;       //!< Number of Steps
+int ncols=80;          //!< Number of Columns
+int nrows=40;          //!< Number of Rows
 #ifdef OMP4
 #pragma omp end declare target
 #endif OMP4
@@ -120,7 +120,7 @@ MPI_Status  status[4];
 
 int main(int argc, char ** argv) {
 
-  double ta, tb, tc, ta_calc, tb_calc, ta_mic, tb_mic;
+  double ta, tb, tc, ta_mic, tb_mic;
   struct timeval tempo ;
 
   options(argc, argv);         /* optarg management */
@@ -176,9 +176,11 @@ int main(int argc, char ** argv) {
   init_grid( nrows, 1, nrows+1, ncols, grid, base_life);  // -- init grids --
   init_grid( nrows, 1, nrows+1, ncols, next_grid, 0);     // ----------------
 
-  gettimeofday(&tempo,0);  tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
+  if (DEBUG==1) fprintf (stderr, "%s-%d  END_MEM_ALLOC - START_DO_STEPS %d rows:%d-%d cols:%d-%d\n", hostname,mpi_rank, nsteps, 0,nrows+1,0,ncols+1);
 
-  log_start_main_loop(ta,tb);
+#ifdef OMP4
+#pragma omp declare target
+#endif OMP4
 
   rmin = 0+bordersize;  // confini della griglia "reale"
   cmin = 0+bordersize;
@@ -191,6 +193,13 @@ int main(int argc, char ** argv) {
   
   nrows_tot = nrows+2*bordersize;  // numero totale di righe e colonne in memoria
   ncols_tot = ncols+2*bordersize;
+ double neighbors=0.0;
+int km,lm,jm,im;
+
+
+#ifdef OMP4
+#pragma omp end declare target
+#endif OMP4
   
   int k;
 
@@ -200,18 +209,18 @@ int main(int argc, char ** argv) {
 
 #ifdef OMP4
   fprintf(stderr, "PLEASE NOTE: this is only for test purpose, not real calc\n\n");
-  gettimeofday(&tempo,0);  ta_mic=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA
+  gettimeofday(&tempo,0);  ta_mic=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA MIC
   #pragma omp target map(A[0:ncomp]) map(B[0:ncomp]) map(tofrom:sum)
   {
   	for (k=0; k < ncomp; k++)  sum += A[k] + B[k];
   }
-  gettimeofday(&tempo,0);  tb_mic=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
+  gettimeofday(&tempo,0);  tb_mic=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB MIC
   fprintf(stderr,"OMP4-MIC Computation time  - %f sec  \n" , tb_mic-ta_mic);
 #endif
 
   #pragma warning disable 161  //disable warnings in icc compilation (due to lack of openacc support)
 
-  // Inizializzazione delle ghost cells
+  // ghost cells init
   
   copy_borders_top_bottom_host(grid);  // copia direttamente sulla griglia
 
@@ -232,9 +241,9 @@ int main(int argc, char ** argv) {
     { omp_size = omp_get_num_threads(); }
     
     #pragma acc data copy(A[0:ncomp],B[0:ncomp],grid[0:nrows+2][0:ncols+2],sum,col_recv_l[0:nrows+2],col_recv_r[0:nrows+2]) create(col_send_l[0:nrows+2],col_send_r[0:nrows+2],next_grid[0:nrows+2][0:ncols+2])
-    for(k=0; k<nsteps; k++) {    /* MAIN LOOP */ // -----------------------------
-    
-     gettimeofday(&tempo,0);  ta_calc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TA_CALC
+    {
+     gettimeofday(&tempo,0);  tb=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB
+     for(k=0; k<nsteps; k++) {    /* MAIN LOOP */ // -----------------------------
 
       #pragma omp master
       { if (mpi_size>1)  RecvBuffers_to_ExtBorders(grid); } // async(1)
@@ -250,9 +259,9 @@ int main(int argc, char ** argv) {
     
       if (mycalc) compute_Internals(grid,next_grid);  // async(2) // omp: all threads execute this function - implicit barrier
 
-      //if (DEBUG==2) {
+      if (mycalc) {
       #pragma acc update host(grid[0:nrows+2][0:ncols+2]) async(4)
-	//}
+	}
 
       #pragma omp master
       {
@@ -260,10 +269,14 @@ int main(int argc, char ** argv) {
 
         if (mpi_size==1) {                     // se c'e' un solo processo
           copy_borders_left_right(next_grid);  // copia direttamente sulla griglia,
-        } else {                               // altrimenti..
-          #pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2])
-          mpi_sendrecv_buffers();              // ..trasmetti via MPI
-          #pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2])
+        } else {
+		      if (mycalc) {                         // altrimenti..
+          			#pragma acc update host (col_send_r[0:nrows+2], col_send_l[0:nrows+2])
+          			mpi_sendrecv_buffers();              // ..trasmetti via MPI
+         			#pragma acc update device (col_recv_r[0:nrows+2], col_recv_l[0:nrows+2])
+				} else {
+				mpi_sendrecv_buffers();
+				}
         }
 
         // Se c'e' un solo rank MPI, a questo punto la griglia next_grid sul device e' completa e coerente al passo n+1, comprese le celle ghost.
@@ -280,20 +293,17 @@ int main(int argc, char ** argv) {
 
         swap_grids();
 
-      } // end omp master - no implied barrier
-      // #pragma omp barrier // non necessaria
-
-    gettimeofday(&tempo,0);  tb_calc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TB_CALC
+      } // end omp master - implicit barrier
     
     } // end MAIN LOOP  // end openacc data region - implicit copyout  // -------
-	
+   } //end pragma acc data copy	
   
   } // end omp parallel region - implicit barrier & flush
 
   
   gettimeofday(&tempo,0); tc=tempo.tv_sec+(tempo.tv_usec/1000000.0); // Save current time in TC
 
-  log_finalize(ta,tb,tc,tb_calc,ta_calc);
+  log_finalize(ta,tb,tc);
 
   if (mpi_rank==0 && strcmp(datafile,"")) {
     save_data(datafile);
@@ -767,7 +777,7 @@ void init_accelerator() {
 	if (DEBUG==1) fprintf(stderr,"Actually I am using GPU: %d\n\n",myrealgpu);
 
 	if(mygpu != myrealgpu) {
-		/*if (DEBUG==1)*/ fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
+			fprintf(stderr,"I cannot use the requested GPU: %d\n",mygpu);
 		exit(1);
 	}
 #endif
@@ -794,27 +804,25 @@ void log_initialize() {
 
 void log_start_main_loop(double ta, double tb) {
 
-  if (DEBUG==1) fprintf (stderr, "%s-%d  END_MEM_ALLOC %f sec - START_DO_STEPS %d rows:%d-%d cols:%d-%d\n", hostname,mpi_rank, tb-ta, nsteps, 0,nrows+1,0,ncols+1);
+  if (DEBUG==1) fprintf (stderr, "%s-%d  END_MEM_ALLOC - START_DO_STEPS %d rows:%d-%d cols:%d-%d\n", hostname,mpi_rank, nsteps, 0,nrows+1,0,ncols+1);
 
 }
 
-void log_finalize(double ta, double tb, double tc, double tb_calc, double ta_calc) {
-
-float real_comp_time = (tb_calc-ta_calc)*nsteps;
+void log_finalize(double ta, double tb, double tc) {
 
   if (DEBUG==1) fprintf(stderr,"%s-%d %d/%d OMP-PARALLEL STOP\n\n", hostname,mpi_rank,omp_rank,omp_size);
 
   if (DEBUG >0) {
+	if (!mycalc) fprintf(stderr,"##### WARNING: communication-only mode enabled #####\n\n");
   	fprintf(stderr,"Sum is: %f\n" , sum);
-	//fprintf(stderr,"Computation time  - %f sec  \n" , tc -tb);
-	fprintf(stderr,"Computation time  - %f sec  \n" , real_comp_time);
+	fprintf(stderr,"Computation time  - %f sec  \n" , tc-tb);
+	fprintf(stderr,"Mem allocation time  - %f sec  \n\n" , tb-ta);
 	fprintf(stderr,"%s-%d - Finalize  - %f sec  \n" , hostname,mpi_rank, tc-ta);
 	}
 
   if (DEBUG==0) {
     if (mpi_rank==0)
-      //fprintf(stderr,"%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
-      fprintf(stderr,"%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, real_comp_time, tc-ta, hostname );
+      fprintf(stderr,"%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
     else
       fprintf(stderr,"#%d %d %d %d %d %d %f %f %f # %s \n" ,  mpi_size, omp_size, ncols, nrows, nsteps, ncomp,  tb-ta, tc-tb, tc-ta, hostname );
   }
@@ -829,8 +837,6 @@ void save_data(char filename[]) {  // todo: make this function endian-independen
     fprintf(stderr,"Error: couldn't open outuput file %s.\n",filename);
     return;
   }
-
-  //#pragma acc update host (grid[nrows+2][ncols+2])
 
   int errors=0;
 

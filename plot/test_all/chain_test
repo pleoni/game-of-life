@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ $1 == "-all" ]] || [[ $1 == "" ]]
+if [[ $1 == "-all" ]] ### test all: compilers performance, mpi, communication times, device performance - long run
 then
 	FIRST=$(qsub -v type=acc -o life_acc_perf.out acc.qsub)
 	echo $FIRST
@@ -28,7 +28,7 @@ then
 	echo $TWELFTH
 fi
 
-if [[ $1 == "-perf" ]]
+if [[ $1 == "-perf" ]] ### test only device performance (host, K20, MIC) - short run
 then
 	FIRST=$(qsub -v type=acc -o life_acc_perf.out acc.qsub)
 	echo $FIRST
@@ -38,7 +38,7 @@ then
 	echo $THIRD
 fi
 
-if [[ $1 == "-mpi" ]]
+if [[ $1 == "-mpi" ]] ### test only mpi multi-node performance (8 nodes) - long run
 then
 	FOURTH=$(qsub -v type=acc-mpi -o life_acc_mpi.out acc_mpi.qsub)
 	echo $FOURTH
@@ -48,7 +48,7 @@ then
 	echo $SIXTH
 fi
 
-if [[ $1 == "-comm-mpi" ]]
+if [[ $1 == "-comm-mpi" ]] ### test only multi-node mpi communication performance (8 nodes) - long run 
 then
 	FOURTH=$(qsub -v type=acc-mpi -o life_acc_mpi.out acc_mpi.qsub)
 	echo $FOURTH
@@ -64,7 +64,7 @@ then
 	echo $NINTH
 fi
 
-if [[ $1 == "-compilers" ]]
+if [[ $1 == "-compilers" ]] ### test only compilers performance (gnu, pgi, icc) - short run
 then
 	TENTH=$(qsub -v type=host-icc -o life_host_icc.out host.qsub)
 	echo $TENTH
@@ -77,10 +77,8 @@ fi
 if [[ $1 != "-compilers" ]] && [[ $1 != "-comm-mpi" ]] && [[ $1 != "-mpi" ]] && [[ $1 != "-mpi" ]] && [[ $1 != "-perf" ]] && [[ $1 != "-all" ]]
 then
 	echo
-	echo "Wrong option."
-	echo
 	echo "Usage:"
 	echo "./chain_test [-all] [-compilers] [-comm-mpi] [-mpi] [-perf]"
-	echo "Default is: [-all]"
+	echo "Default is: this help"
 	echo
 fi
