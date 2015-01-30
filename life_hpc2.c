@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2014.06.07";
+char version[]="2015.01.30";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -794,7 +794,7 @@ void init_accelerator() {
 
 void log_initialize() {
 
-  if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", hostname, mpi_rank, mpi_size, omp_size, ncols,nrows,nsteps,datafile, DEBUG);
+  if (DEBUG==1) fprintf(stdout,"\n%s-%d MPI_INIT mpi_size:%d omp_size:%d ncols:%d nrows:%d nsteps:%d file:%s debug:%d\n", hostname, mpi_rank, mpi_size, num_threads, ncols,nrows,nsteps,datafile, DEBUG);
   if (DEBUG==1) fprintf(stdout,"\nComp load: %d\n",ncomp);
   if (DEBUG==1) fprintf(stderr,"\n%s-%d ALLOCATE MEMORY  (%ld grid + %ld new_grid = %ld bytes ) \n", hostname,mpi_rank, datasize, datasize, datasize*2);
   if (DEBUG==1) fprintf(stderr,"%s-%d  %d iterations - Start timer\n",hostname ,mpi_rank, nsteps);
