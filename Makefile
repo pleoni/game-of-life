@@ -81,11 +81,11 @@ sericc:
 	$(CC) $(PACKAGE).c $(SIMD_GNU) $(MyO) $(SIMD_INTEL) -o $(PACKAGE)_sericc"
 
 acc_pgi_kep:
-	bash -c "$(UNLOADALL) ; $(UNLOADGOMP40) ; module load pgi ; \
+	bash -c "$(UNLOADALL) ; $(UNLOADGCC5) ; module load pgi ; \
 	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_acckep -acc -ta=tesla:kepler -Minfo=accel -O3"
 
 omp_pgi_kep:
-	bash -c "$(UNLOADALL) ; $(UNLOADGOMP40) ; module load pgi ; \
+	bash -c "$(UNLOADALL) ; $(UNLOADGCC5) ; module load pgi ; \
 	pgcc -Mmpi=mpich $(PACKAGE).c -o $(PACKAGE)_ompkep $(MyO) -mp=numa -fast -Minfo=vec,mp"
 
 omp4_gcc_kep:
