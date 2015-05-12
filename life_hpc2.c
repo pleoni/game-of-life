@@ -76,18 +76,19 @@ int bordersize = 1;           // larghezza (trasversale) di tutti i bordi e i bu
 
 #ifdef OMP4
 #pragma omp declare target
-#endif OMP4
+#endif
 int rmin, rmax, cmin, cmax,   // boundary of the "real" grid
     rmin_int, rmax_int, cmin_int, cmax_int;  // boundary of the innermost part of the grid
 #ifdef OMP4
 #pragma omp end declare target
-#endif OMP4
+#endif
 
 double *col_send_l, *col_send_r, *col_recv_l, *col_recv_r; //border buffers
 
 #ifdef OMP4
 #pragma omp declare target
-#endif OMP4
+#endif
+
 int ncomp=1000;            //!< Computational load
 double sum=0.0;
 double *A, *B; // array for computation
@@ -97,9 +98,10 @@ double ** temp_grid;
 int nsteps=1000;       //!< Number of Steps
 int ncols=80;          //!< Number of Columns
 int nrows=40;          //!< Number of Rows
+
 #ifdef OMP4
 #pragma omp end declare target
-#endif OMP4
+#endif 
 
 ////// omp + MPI //////
 
@@ -199,7 +201,7 @@ int km,lm,jm,im;
 
 #ifdef OMP4
 #pragma omp end declare target
-#endif OMP4
+#endif 
   
   int k;
 
