@@ -2,7 +2,7 @@
 // University of Parma - INFN
 // life_hpc2.c
 
-char version[]="2015.01.30";
+char version[]="2015.05.12";
 int DEBUG=1;
 
 #include <stdlib.h>
@@ -182,7 +182,7 @@ int main(int argc, char ** argv) {
 
 #ifdef OMP4
 #pragma omp declare target
-#endif OMP4
+#endif
 
   rmin = 0+bordersize;  // confini della griglia "reale"
   cmin = 0+bordersize;
